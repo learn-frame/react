@@ -134,6 +134,8 @@ function PureComponent(props, context, updater) {
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
+// 寄生组合继承, 本质上就是继承了 `Component`
+// 只不过 PureComponent 增加了一个 `isPureReactComponent` 的属性
 const pureComponentPrototype = (PureComponent.prototype = new ComponentDummy());
 pureComponentPrototype.constructor = PureComponent;
 // Avoid an extra prototype jump for these methods.
