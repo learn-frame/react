@@ -1,5 +1,7 @@
 # ReactElement
 
+> `packages/react/src/ReactElement.js`
+
 ## New JSX transform
 
 旧的 jsx 会被编译成 `React.createElement`, 因此你不得不在 jsx 文件中引入 `React`, 新的 babel 编译包会使用 `import jsx from 'react/jsx-runtime'`.
