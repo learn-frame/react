@@ -49,6 +49,7 @@ function escape(key: string): string {
 
 let didWarnAboutMaps = false;
 
+// 字符串 text 中如果有 `/`, 替换成 `//`
 const userProvidedKeyEscapeRegex = /\/+/g;
 function escapeUserProvidedKey(text: string): string {
   return text.replace(userProvidedKeyEscapeRegex, '$&/');
@@ -105,8 +106,13 @@ function mapIntoArray(
     }
   }
 
+  // 上面的代码中, 意味着只有一个 children
+  // 因为 type 为 string 或者 number, 肯定就是单个嘛
+  // 第二个 switch...case 既然能取到 children.$$typeof, 意味着 children 不是个数组, 而是个对象
   if (invokeCallback) {
+    // 因此这里可以直接将 children 命名成 child
     const child = children;
+    // 虽然 children 只有一个, 也会将其放到一个数组里, 即 [React$Node]
     let mappedChild = callback(child);
     // If it's the only child, treat the name as if it was wrapped in an array
     // so that it's consistent if the number of children grows:
