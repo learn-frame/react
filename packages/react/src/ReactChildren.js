@@ -34,6 +34,7 @@ function escape(key: string): string {
     '=': '=0',
     ':': '=2',
   };
+  // 字符串 key 遇到 '=', 替换成 '=0'; 遇到 ':', 替换成 '=2' 
   const escapedString = key.replace(escapeRegex, function(match) {
     return escaperLookup[match];
   });
