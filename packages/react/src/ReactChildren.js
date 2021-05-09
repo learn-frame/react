@@ -34,7 +34,7 @@ function escape(key: string): string {
     '=': '=0',
     ':': '=2',
   };
-  // 字符串 key 遇到 '=', 替换成 '=0'; 遇到 ':', 替换成 '=2' 
+  // 字符串 key 遇到 '=', 替换成 '=0'; 遇到 ':', 替换成 '=2'
   const escapedString = key.replace(escapeRegex, function(match) {
     return escaperLookup[match];
   });
@@ -118,14 +118,20 @@ function mapIntoArray(
     // so that it's consistent if the number of children grows:
     const childKey =
       nameSoFar === '' ? SEPARATOR + getElementKey(child, 0) : nameSoFar;
+    // 比如回调函数是 c => [c, c], 这样 mappedChild 就是一个数组
+    // 递归地执行 mapIntoArray 方法, 直到 mappedChild 只是一个 ReactNode 或者 string 或者 number
     if (isArray(mappedChild)) {
       let escapedChildKey = '';
       if (childKey != null) {
         escapedChildKey = escapeUserProvidedKey(childKey) + '/';
       }
       mapIntoArray(mappedChild, array, escapedChildKey, '', c => c);
+      // 比如回调函数是 c => c
+      // 这样 mappedChild 仍然是一个对象, 不会是数组
     } else if (mappedChild != null) {
+      // 即 object.$$typeof === REACT_ELEMENT_TYPE
       if (isValidElement(mappedChild)) {
+        // 克隆一个旧的 child, 虽然还是以前那个 ReactNode, 但需要把 key 替换了
         mappedChild = cloneAndReplaceKey(
           mappedChild,
           // Keep both the (mapped) and old keys if they differ, just as
@@ -144,12 +150,14 @@ function mapIntoArray(
     return 1;
   }
 
+  // 如果本身就有多个 children, 深度递归
   let child;
   let nextName;
   let subtreeCount = 0; // Count of children found in the current subtree.
   const nextNamePrefix =
     nameSoFar === '' ? SEPARATOR : nameSoFar + SUBSEPARATOR;
 
+  // 如果是数组...
   if (isArray(children)) {
     for (let i = 0; i < children.length; i++) {
       child = children[i];
@@ -163,12 +171,14 @@ function mapIntoArray(
       );
     }
   } else {
+    // React 的 Children 允许是 Set(可迭代对象), 但不允许是 Map
     const iteratorFn = getIteratorFn(children);
     if (typeof iteratorFn === 'function') {
       const iterableChildren: Iterable<React$Node> & {
         entries: any,
       } = (children: any);
 
+      // 但不允许是 Map
       if (__DEV__) {
         // Warn about using Maps as children
         if (iteratorFn === iterableChildren.entries) {
@@ -196,6 +206,7 @@ function mapIntoArray(
           callback,
         );
       }
+      // 如果是普通对象, 直接 fatal
     } else if (type === 'object') {
       const childrenString = '' + (children: any);
       invariant(
