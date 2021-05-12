@@ -57,7 +57,9 @@ function ReactDOMRoot(container: Container, options: void | RootOptions) {
   this._internalRoot = createRootImpl(container, ConcurrentRoot, options);
 }
 
+// 用来创建 ReactRoot
 function ReactDOMLegacyRoot(container: Container, options: void | RootOptions) {
+  // LegacyRoot 为数字 0
   this._internalRoot = createRootImpl(container, LegacyRoot, options);
 }
 
@@ -126,6 +128,7 @@ function createRootImpl(
       ? options.unstable_strictModeLevel
       : null;
 
+  // 该方法来自于 Reconciler, 用于 createFiberRoot
   const root = createContainer(
     container,
     tag,

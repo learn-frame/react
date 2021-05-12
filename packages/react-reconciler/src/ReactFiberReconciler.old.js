@@ -243,6 +243,7 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
+// 创建容器
 export function createContainer(
   containerInfo: Container,
   tag: RootTag,
@@ -259,6 +260,8 @@ export function createContainer(
   );
 }
 
+// 更新容器
+// 初次渲染需要更新; 后面改变状态, 在必要时改变 DOM 以映射最新的 React 元素
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -307,6 +310,7 @@ export function updateContainer(
     }
   }
 
+  // createUpdate 用来标记更新的具体位置
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
@@ -326,7 +330,9 @@ export function updateContainer(
     update.callback = callback;
   }
 
+  // 入队进行更新
   enqueueUpdate(current, update, lane);
+  // 在 Fiber 进行调度更新
   const root = scheduleUpdateOnFiber(current, lane, eventTime);
   if (root !== null) {
     entangleTransitions(root, current, lane);

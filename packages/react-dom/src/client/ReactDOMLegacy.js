@@ -117,6 +117,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 清理掉 <div id="root"></div> 下的所有子节点
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -188,8 +189,14 @@ function legacyRenderSubtreeIntoContainer(
   // member of intersection type." Whyyyyyy.
   let root: RootType = (container._reactRootContainer: any);
   let fiberRoot;
+
+  // 执行 ReactDOM.render() 时, container 是个 DOM 元素
+  // 比如是 document.getElementById('root'), 显然没有 _reactRootContainer 属性
+  // 此时 root 为 undefined, 走下面这个 if 的逻辑
   if (!root) {
     // Initial mount
+    // 除非是服务端渲染, 否则抹除 document.getElementById('root') 的所有子节点
+    // 这也就是为什么我们建一个空的 <div id="root"></div>
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -203,9 +210,13 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 初始化挂载不应该批量更新
     unbatchedUpdates(() => {
+      // 初始化时 parentComponent 肯定为 null
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
+    // 如果 React 元素之前已经在 container 里渲染过
+    // 这将会对其执行更新操作, 并仅会在必要时改变 DOM 以映射最新的 React 元素
   } else {
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
