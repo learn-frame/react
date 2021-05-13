@@ -32,6 +32,7 @@ import {initializeUpdateQueue} from './ReactUpdateQueue.old';
 import {LegacyRoot, ConcurrentRoot} from './ReactRootTags';
 
 function FiberRootNode(containerInfo, tag, hydrate) {
+  // tag 如果是 0, 就是 Lagacy mode; 如果是 1, 就是 Concurrent mode
   this.tag = tag;
   this.containerInfo = containerInfo;
   this.pendingChildren = null;
@@ -114,6 +115,7 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // uninitializedFiber, 抑或说 root.current 就是 Fiber 对象
   const uninitializedFiber = createHostRootFiber(tag, strictModeLevelOverride);
   root.current = uninitializedFiber;
   uninitializedFiber.stateNode = root;
@@ -133,6 +135,7 @@ export function createFiberRoot(
     uninitializedFiber.memoizedState = initialState;
   }
 
+  // 创建 Fiber 中的 updateQueue
   initializeUpdateQueue(uninitializedFiber);
 
   return root;

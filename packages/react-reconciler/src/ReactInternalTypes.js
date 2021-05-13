@@ -60,6 +60,7 @@ export type Dependencies = {
 
 // A Fiber is work on a Component that needs to be done or was done. There can
 // be more than one per component.
+// 每个 ReactElement 都对应一个 Fiber 对象, 用来记录各种状态, 串联各个节点
 export type Fiber = {|
   // These first fields are conceptually members of an Instance. This used to
   // be split into a separate type and intersected with the other Fiber fields,
@@ -79,8 +80,11 @@ export type Fiber = {|
 
   // The value of element.type which is used to preserve the identity during
   // reconciliation of this child.
+  // 也就是 ReactElement.type
   elementType: any,
 
+  // 比如是个 div 标签, 那么 type = 'div', stateNode 就是这个 div 实例
+  // 比如是个 class component, 名字叫 App, 那么 type = 这个类组建的引用, stateNode 就是这个组件的实例
   // The resolved function/class/ associated with this fiber.
   type: any,
 
@@ -97,10 +101,14 @@ export type Fiber = {|
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+  // 指向其父 Fiber 节点
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
+  // 指向其第一个子 Fiber 节点
   child: Fiber | null,
+
+  // 指向其第一个兄弟节点, 兄弟节点的 return 会跟上面的 return 一致
   sibling: Fiber | null,
   index: number,
 
@@ -112,13 +120,17 @@ export type Fiber = {|
     | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
+  // 新的变动带来的新的 props
   pendingProps: any, // This type will be more specific once we overload the tag.
+  // 上一次渲染完成后的 props
   memoizedProps: any, // The props used to create the output.
 
   // A queue of state updates and callbacks.
+  // 更新队列
   updateQueue: mixed,
 
   // The state used to create the output
+  // 上一个 state, 通过 updateQueue 计算出新的 state
   memoizedState: any,
 
   // Dependencies (contexts, events) for this fiber, if it has any
@@ -130,6 +142,15 @@ export type Fiber = {|
   // parent. Additional flags can be set at creation time, but after that the
   // value should remain unchanged throughout the fiber's lifetime, particularly
   // before its child fibers are created.
+
+  // export const NoMode = /*            */ 0b000000;
+  // TODO: Remove ConcurrentMode by reading from the root tag instead
+  // export const ConcurrentMode = /*    */ 0b000001;
+  // export const ProfileMode = /*       */ 0b000010;
+  // export const DebugTracingMode = /*  */ 0b000100;
+  // export const StrictLegacyMode = /*  */ 0b001000;
+  // export const StrictEffectsMode = /* */ 0b010000;
+  // 如果是 9, 也就是 StrictLegacyMode | ConcurrentMode 过来的
   mode: TypeOfMode,
 
   // Effect
@@ -138,6 +159,7 @@ export type Fiber = {|
   deletions: Array<Fiber> | null,
 
   // Singly linked list fast path to the next fiber with side-effects.
+  // 副作用, 用来标记需要进行什么类型的更新, 比如 Deletion(删除节点)
   nextEffect: Fiber | null,
 
   // The first and last fiber with side-effect within this subtree. This allows
@@ -146,12 +168,22 @@ export type Fiber = {|
   firstEffect: Fiber | null,
   lastEffect: Fiber | null,
 
+  // 原来叫 expirationTime 跟 childExpirationTime
   lanes: Lanes,
   childLanes: Lanes,
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
+
+  // Fiber 采用了双缓存(DoubleBuffer) 策略, 即:
+  // 当前 Fiber 节点与 WorkInProgress 节点, 它们使用 alternate 属性相连
+  // 用代码表示就是: 
+  // currFiber.alternate = workInProgressFiber
+  // workInProgressFiber.alternate = currFiber
+  // workInProgressFiber 在内存中构建, 完了之后再跟 currFiber 替换
+  // 如果直接构建 currFiber, 势必会展示给用户白屏或闪烁, 这就是 DoubleBuffer 的优雅之处
+
   alternate: Fiber | null,
 
   // Time spent rendering this Fiber and its descendants for the current update.
@@ -203,9 +235,11 @@ type BaseFiberRootProperties = {|
   pingCache: WeakMap<Wakeable, Set<mixed>> | Map<Wakeable, Set<mixed>> | null,
 
   // A finished work-in-progress HostRoot that's ready to be committed.
+  // 更新到输出到 DOM, 就是读取的这个属性
   finishedWork: Fiber | null,
   // Timeout handle returned by setTimeout. Used to cancel a pending timeout, if
   // it's superseded by a new one.
+  // 如果有任务被挂起, 展示 Suspend fallback
   timeoutHandle: TimeoutHandle | NoTimeout,
   // Top context object, used by renderSubtreeIntoContainer
   context: Object | null,
