@@ -42,11 +42,19 @@
 // current queue once it commits, there's no danger of applying the same
 // update twice.)
 //
+// 说白了就是拿 WIP 做个备胎, 即在 WIP 上做更新, 如果更新好了, 就让 WIP 变成新的 current
+// 如果在更新过程中, WIP 出什么篓子了, 也不会影响到 current.
+
 // Prioritization
 // --------------
 //
 // Updates are not sorted by priority, but by insertion; new updates are always
 // appended to the end of the list.
+// 
+// 新的更新被放到队列的最后面, 队列是先进先出, 这样就保证了队列中的第一个是优先级最高的了.
+// 似乎看起来优先级通过队列的性质就能确定了, 但事实并不是这样, 因为 React 中的渲染是可以被
+// 打断的, 
+//
 //
 // The priority is still important, though. When processing the update queue
 // during the render phase, only the updates with sufficient priority are
@@ -125,6 +133,7 @@ export type Update<State> = {|
   payload: any,
   callback: (() => mixed) | null,
 
+  // 单向链表, 指向下一个更新
   next: Update<State> | null,
 |};
 
@@ -135,6 +144,7 @@ export type SharedQueue<State> = {|
 |};
 
 export type UpdateQueue<State> = {|
+  // 当前的 state, 通过当前来计算下一次更新
   baseState: State,
   firstBaseUpdate: Update<State> | null,
   lastBaseUpdate: Update<State> | null,
@@ -202,6 +212,10 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
     eventTime,
     lane,
 
+    // export const UpdateState = 0;
+    // export const ReplaceState = 1;
+    // export const ForceUpdate = 2;
+    // export const CaptureUpdate = 3; // 出现错误被捕获
     tag: UpdateState,
     payload: null,
     callback: null,
@@ -240,9 +254,11 @@ export function enqueueUpdate<State>(
   } else {
     const pending = sharedQueue.pending;
     if (pending === null) {
+      // 如果不存在, 就将 update 放到 update.next
       // This is the first update. Create a circular list.
       update.next = update;
     } else {
+      // 否则将本次 pending 放到队列中
       update.next = pending.next;
       pending.next = update;
     }

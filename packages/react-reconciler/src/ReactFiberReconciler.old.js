@@ -314,6 +314,8 @@ export function updateContainer(
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  // 初次渲染就是 ReactElement
+  // 如果是后面的更新, 即使用 setState, element 就是 setState 传入的对象或方法
   update.payload = {element};
 
   callback = callback === undefined ? null : callback;

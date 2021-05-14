@@ -186,6 +186,7 @@ function FiberNode(
   }
 }
 
+// 创建 Fiber 对象
 // This is a constructor function, rather than a POJO constructor, still
 // please ensure we do the following:
 // 1) Nobody should add any instance methods on this. Instance methods can be

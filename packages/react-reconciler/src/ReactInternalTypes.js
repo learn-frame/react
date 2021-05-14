@@ -126,7 +126,7 @@ export type Fiber = {|
   memoizedProps: any, // The props used to create the output.
 
   // A queue of state updates and callbacks.
-  // 更新队列
+  // 更新队列, 记录状态改变
   updateQueue: mixed,
 
   // The state used to create the output
@@ -183,7 +183,6 @@ export type Fiber = {|
   // workInProgressFiber.alternate = currFiber
   // workInProgressFiber 在内存中构建, 完了之后再跟 currFiber 替换
   // 如果直接构建 currFiber, 势必会展示给用户白屏或闪烁, 这就是 DoubleBuffer 的优雅之处
-
   alternate: Fiber | null,
 
   // Time spent rendering this Fiber and its descendants for the current update.
