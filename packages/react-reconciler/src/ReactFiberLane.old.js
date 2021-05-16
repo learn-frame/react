@@ -7,6 +7,12 @@
  * @flow
  */
 
+// a |= b; // 添加属性
+// a &= ~b; // 删除属性
+// a & b === b // 判读是否有 b 属性
+
+// Lane 数字越小, 优先级越大
+
 import type {FiberRoot} from './ReactInternalTypes';
 
 // TODO: Ideally these types would be opaque but that doesn't work well with
@@ -515,6 +521,7 @@ export function claimNextRetryLane(): Lane {
   return lane;
 }
 
+// 分离出最高优先级
 export function getHighestPriorityLane(lanes: Lanes): Lane {
   return lanes & -lanes;
 }
@@ -527,6 +534,9 @@ export function pickArbitraryLane(lanes: Lanes): Lane {
   return getHighestPriorityLane(lanes);
 }
 
+// 获取最小优先级
+// clz32(lanes) 返回一个数字在转换成 32 无符号整形数字的二进制形式后, 前导 0 的个数
+// 后续通过 1 << 31 - clz32(lanes) 来分离最左边的 1, 从而得到最小优先级
 function pickArbitraryLaneIndex(lanes: Lanes) {
   return 31 - clz32(lanes);
 }

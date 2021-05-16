@@ -392,6 +392,7 @@ export function getCurrentTime() {
 export function requestUpdateLane(fiber: Fiber): Lane {
   // Special cases
   const mode = fiber.mode;
+  // 校验 ConcurrentMode
   if ((mode & ConcurrentMode) === NoMode) {
     return (SyncLane: Lane);
   } else if (
@@ -408,6 +409,8 @@ export function requestUpdateLane(fiber: Fiber): Lane {
     // This behavior is only a fallback. The flag only exists until we can roll
     // out the setState warning, since existing code might accidentally rely on
     // the current behavior.
+
+    // 获取当前 lanes 中的最高优先级
     return pickArbitraryLane(workInProgressRootRenderLanes);
   }
 
@@ -462,11 +465,14 @@ function requestRetryLane(fiber: Fiber) {
   return claimNextRetryLane();
 }
 
+// 在 Fiber 上调度更新
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
   eventTime: number,
 ): FiberRoot | null {
+  // 警告你在一个 componentDidMount 中不能多次调用 setState (50 次)
+  // 一般也没这么变态的需求...
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
@@ -579,11 +585,13 @@ export function scheduleUpdateOnFiber(
 // work without treating it as a typical update that originates from an event;
 // e.g. retrying a Suspense boundary isn't an update, but it does schedule work
 // on a fiber.
+// 返回 div#root, 并更新该条链上的 lane
 function markUpdateLaneFromFiberToRoot(
   sourceFiber: Fiber,
   lane: Lane,
 ): FiberRoot | null {
   // Update the source fiber's lanes
+  // 更新当前 Fiber 对象及其 alternate 的 lanes
   sourceFiber.lanes = mergeLanes(sourceFiber.lanes, lane);
   let alternate = sourceFiber.alternate;
   if (alternate !== null) {
@@ -598,6 +606,7 @@ function markUpdateLaneFromFiberToRoot(
     }
   }
   // Walk the parent path to the root and update the child lanes.
+  // 从下往上遍历, 直到 div#root, 顺手将 current 跟 alternate 的 lane 更新一波
   let node = sourceFiber;
   let parent = sourceFiber.return;
   while (parent !== null) {
@@ -615,6 +624,8 @@ function markUpdateLaneFromFiberToRoot(
     node = parent;
     parent = parent.return;
   }
+
+  // 也就是到了 div#root
   if (node.tag === HostRoot) {
     const root: FiberRoot = node.stateNode;
     return root;

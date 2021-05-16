@@ -50,11 +50,12 @@
 //
 // Updates are not sorted by priority, but by insertion; new updates are always
 // appended to the end of the list.
-// 
+//
 // 新的更新被放到队列的最后面, 队列是先进先出, 这样就保证了队列中的第一个是优先级最高的了.
 // 似乎看起来优先级通过队列的性质就能确定了, 但事实并不是这样, 因为 React 中的渲染是可以被
-// 打断的, 
-//
+// 打断的, 这个被打断的更新的前半部分, 和相同优先级的一起执行, 后半部分和下一次更新一起执行,
+// 因此看下面的例子, C1 虽然在 B2 后面, 但中间状态仍然是 A1, C1 一起更新,
+// 因此更新队列的顺序不是判断优先级顺序的唯一标准, 但最终状态是按队列顺序来的.
 //
 // The priority is still important, though. When processing the update queue
 // during the render phase, only the updates with sufficient priority are

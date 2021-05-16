@@ -206,6 +206,7 @@ function applyDerivedStateFromProps(
   }
 }
 
+// 创建类组件的更新, 也就是你调用了 setState 会做什么
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
@@ -282,6 +283,8 @@ const classComponentUpdater = {
     const lane = requestUpdateLane(fiber);
 
     const update = createUpdate(eventTime, lane);
+    // 和 enqueueSetState 差不多, 只不过
+    // tag 为 ForceUpdate
     update.tag = ForceUpdate;
 
     if (callback !== undefined && callback !== null) {
