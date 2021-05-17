@@ -548,6 +548,7 @@ export function scheduleUpdateOnFiber(
     }
   }
 
+  // 如果是同步的
   if (lane === SyncLane) {
     if (
       // Check if we're inside unbatchedUpdates
@@ -556,11 +557,13 @@ export function scheduleUpdateOnFiber(
       (executionContext & (RenderContext | CommitContext)) === NoContext
     ) {
       // Register pending interactions on the root to avoid losing traced interaction data.
+      // __PROFILE__ 模式
       schedulePendingInteractions(root, lane);
 
       // This is a legacy edge case. The initial mount of a ReactDOM.render-ed
       // root inside of batchedUpdates should be synchronous, but layout updates
       // should be deferred until the end of the batch.
+      // 就走同步逻辑
       performSyncWorkOnRoot(root);
     } else {
       ensureRootIsScheduled(root, eventTime);
@@ -987,13 +990,19 @@ function markRootSuspended(root, suspendedLanes) {
   // rarely, since we try to avoid it) updated during the render phase.
   // TODO: Lol maybe there's a better way to factor this besides this
   // obnoxiously named function :)
+  // 移除掉 updatedLanes 和 pingedLanes, 只剩下 suspendedLanes
   suspendedLanes = removeLanes(suspendedLanes, workInProgressRootPingedLanes);
   suspendedLanes = removeLanes(suspendedLanes, workInProgressRootUpdatedLanes);
+
+  // 给 root.suspendedLanes 增加 suspendedLanes
+  // 移除 root.pingedLanes 中的 suspendedLanes
+  // 遍历 lanes, 在此过程中把 expirationTimes[index] 设为 -1
   markRootSuspended_dontCallThisOneDirectly(root, suspendedLanes);
 }
 
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
+// 同步任务无需调度
 function performSyncWorkOnRoot(root) {
   if (enableProfilerTimer && enableProfilerNestedUpdatePhase) {
     syncNestedUpdateFlag();
