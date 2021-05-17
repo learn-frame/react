@@ -476,6 +476,7 @@ export function scheduleUpdateOnFiber(
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
+  // 首先找到 FiberRoot, 并更新这条链上的所有 lane
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
@@ -489,8 +490,11 @@ export function scheduleUpdateOnFiber(
   }
 
   // Mark that the root has a pending update.
+  // 赋值 pendingLanes, suspendedLanes, pingedLanes
+  // 给最低优先级的 eventTimes 元素重新赋值成 eventTime
   markRootUpdated(root, lane, eventTime);
 
+  // enableProfilerNestedUpdateScheduledHook 默认是 false
   if (enableProfilerTimer && enableProfilerNestedUpdateScheduledHook) {
     if (
       (executionContext & CommitContext) !== NoContext &&
@@ -531,6 +535,8 @@ export function scheduleUpdateOnFiber(
         lane,
       );
     }
+    // 如果前一次更新被后面的高优先级任务打断了
+    // 标记成 suspend 状态
     if (workInProgressRootExitStatus === RootSuspendedWithDelay) {
       // The root already suspended with a delay, which means this render
       // definitely won't finish. Since we have a new update, let's mark it as

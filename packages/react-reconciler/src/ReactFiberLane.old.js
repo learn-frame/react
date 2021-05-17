@@ -610,6 +610,7 @@ export function markRootUpdated(
     root.pingedLanes = NoLanes;
   }
 
+  // 给最低优先级的 eventTimes 元素重新赋值成 eventTime
   const eventTimes = root.eventTimes;
   const index = laneToIndex(updateLane);
   // We can always overwrite an existing timestamp because we prefer the most
@@ -618,10 +619,14 @@ export function markRootUpdated(
 }
 
 export function markRootSuspended(root: FiberRoot, suspendedLanes: Lanes) {
+  // 给 root.suspendedLanes 增加 suspendedLanes
   root.suspendedLanes |= suspendedLanes;
+
+  // 移除 root.pingedLanes 中的 suspendedLanes
   root.pingedLanes &= ~suspendedLanes;
 
   // The suspended lanes are no longer CPU-bound. Clear their expiration times.
+  // 遍历 lanes, 直到将 lanes 清零, 在此过程中把 expirationTimes[index] 设为 -1
   const expirationTimes = root.expirationTimes;
   let lanes = suspendedLanes;
   while (lanes > 0) {
