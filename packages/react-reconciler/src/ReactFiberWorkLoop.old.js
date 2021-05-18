@@ -551,6 +551,7 @@ export function scheduleUpdateOnFiber(
   // 如果是同步的
   if (lane === SyncLane) {
     if (
+      // 首次渲染
       // Check if we're inside unbatchedUpdates
       (executionContext & LegacyUnbatchedContext) !== NoContext &&
       // Check if we're not already rendering
@@ -577,6 +578,8 @@ export function scheduleUpdateOnFiber(
         // scheduleCallbackForFiber to preserve the ability to schedule a callback
         // without immediately flushing it. We only do this for user-initiated
         // updates, to preserve historical behavior of legacy mode.
+        
+        // now() + RENDER_TIMEOUT_MS(500)
         resetRenderTimer();
         flushSyncCallbacksOnlyInLegacyMode();
       }
@@ -1136,6 +1139,7 @@ export function deferredUpdates<A>(fn: () => A): A {
   }
 }
 
+// 批量更新
 export function batchedUpdates<A, R>(fn: A => R, a: A): R {
   const prevExecutionContext = executionContext;
   executionContext |= BatchedContext;
