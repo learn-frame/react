@@ -85,6 +85,7 @@ function siftDown(heap, node, i) {
   }
 }
 
+// 先用 sortIndex 判断优先级(小的在前面), 如果 sortIndex 相等, 再用 id 判断
 function compare(a, b) {
   // Compare sort index first, then task id.
   const diff = a.sortIndex - b.sortIndex;

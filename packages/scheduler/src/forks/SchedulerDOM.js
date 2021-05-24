@@ -38,6 +38,9 @@ import {
 
 import {enableIsInputPending} from '../SchedulerFeatureFlags';
 
+/*
+ * 优先使用 performance.now(), 否则使用 Date.now()
+ */
 let getCurrentTime;
 const hasPerformanceNow =
   typeof performance === 'object' && typeof performance.now === 'function';
@@ -51,6 +54,9 @@ if (hasPerformanceNow) {
   getCurrentTime = () => localDate.now() - initialTime;
 }
 
+/*
+ * 五种优先级, 从立即执行到永不执行
+ */
 // Max 31 bit integer. The max integer size in V8 for 32-bit systems.
 // Math.pow(2, 30) - 1
 // 0b111111111111111111111111111111
@@ -66,7 +72,10 @@ var LOW_PRIORITY_TIMEOUT = 10000;
 var IDLE_PRIORITY_TIMEOUT = maxSigned31BitInt;
 
 // Tasks are stored on a min heap
+// 已过期的
 var taskQueue = [];
+
+// 未过期的
 var timerQueue = [];
 
 // Incrementing id counter. Used to maintain insertion order.
@@ -78,6 +87,7 @@ var isSchedulerPaused = false;
 var currentTask = null;
 var currentPriorityLevel = NormalPriority;
 
+// 节流
 // This is set while performing work, to prevent re-entrancy.
 var isPerformingWork = false;
 
@@ -89,6 +99,8 @@ const setTimeout = window.setTimeout;
 const clearTimeout = window.clearTimeout;
 const setImmediate = window.setImmediate; // IE and Node.js + jsdom
 
+// 最新的 Scheduler 已经不再使用 rAF 了, 使用 MessageChannal
+// 折叠掉这块即可
 if (typeof console !== 'undefined') {
   // TODO: Scheduler no longer requires these methods to be polyfilled. But
   // maybe we want to continue warning if they don't exist, to preserve the
@@ -98,6 +110,7 @@ if (typeof console !== 'undefined') {
 
   if (typeof requestAnimationFrame !== 'function') {
     // Using console['error'] to evade Babel and ESLint
+    // 避免 no-console 的 eslint 警告...
     console['error'](
       "This browser doesn't support requestAnimationFrame. " +
         'Make sure that you load a ' +
@@ -114,16 +127,21 @@ if (typeof console !== 'undefined') {
   }
 }
 
+// 检查 timerQueue 中的过期任务, 放到 taskQueue
 function advanceTimers(currentTime) {
   // Check for tasks that are no longer delayed and add them to the queue.
   let timer = peek(timerQueue);
   while (timer !== null) {
     if (timer.callback === null) {
+      // TODO: 下面看看为什么
       // Timer was cancelled.
       pop(timerQueue);
+      // 开始时间小于等于当前时间, 说明已过期, 放到 taskQueue
     } else if (timer.startTime <= currentTime) {
       // Timer fired. Transfer to the task queue.
       pop(timerQueue);
+      // taskQueue 是通过 expirationTime 判断优先级的,
+      // expirationTime 越小, 说明越紧急, 它就应该放在 taskQueue 的最前面
       timer.sortIndex = timer.expirationTime;
       push(taskQueue, timer);
       if (enableProfiling) {
@@ -131,6 +149,7 @@ function advanceTimers(currentTime) {
         timer.isQueued = true;
       }
     } else {
+      // 开始时间大于当前时间, 说明未过期, 任务仍然保留在 timerQueue
       // Remaining timers are pending.
       return;
     }
@@ -140,15 +159,18 @@ function advanceTimers(currentTime) {
 
 function handleTimeout(currentTime) {
   isHostTimeoutScheduled = false;
+  // 更新 timerQueue 和 taskQueue 两个序列
   advanceTimers(currentTime);
 
   if (!isHostCallbackScheduled) {
+    // 如果 taskQueue 中有任务, 那就执行优先级最高的这个(堆顶)
     if (peek(taskQueue) !== null) {
       isHostCallbackScheduled = true;
       requestHostCallback(flushWork);
     } else {
       const firstTimer = peek(timerQueue);
       if (firstTimer !== null) {
+        // 递归, 延时执行 handleTimeout
         requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
       }
     }
@@ -205,6 +227,7 @@ function workLoop(hasTimeRemaining, initialTime) {
     currentTask !== null &&
     !(enableSchedulerDebugging && isSchedulerPaused)
   ) {
+    // 虽然 currentTask 未过期, 但执行时间超过了 time slice(也就是 !hasTimeRemaining)
     if (
       currentTask.expirationTime > currentTime &&
       (!hasTimeRemaining || shouldYieldToHost())
@@ -212,6 +235,7 @@ function workLoop(hasTimeRemaining, initialTime) {
       // This currentTask hasn't expired, and we've reached the deadline.
       break;
     }
+
     const callback = currentTask.callback;
     if (typeof callback === 'function') {
       currentTask.callback = null;
@@ -237,6 +261,7 @@ function workLoop(hasTimeRemaining, initialTime) {
         }
       }
       advanceTimers(currentTime);
+      // 如果没有 callback, 这个 task 就被废弃了
     } else {
       pop(taskQueue);
     }
@@ -319,6 +344,8 @@ function unstable_wrapCallback(callback) {
 function unstable_scheduleCallback(priorityLevel, callback, options) {
   var currentTime = getCurrentTime();
 
+  // 任务进来的时候, 开始时间默认是当前时间, 如果进入调度的时候传了延迟时间
+  // 开始时间则是当前时间与延迟时间的和
   var startTime;
   if (typeof options === 'object' && options !== null) {
     var delay = options.delay;
@@ -367,6 +394,8 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 
   if (startTime > currentTime) {
     // This is a delayed task.
+    // timerQueue 是通过 startTime 判断优先级的,
+    // startTime 越小, 说明应该越早开始, 它就应该放在 timerQueue 的最前面
     newTask.sortIndex = startTime;
     push(timerQueue, newTask);
     if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
@@ -449,6 +478,7 @@ let deadline = 0;
 const maxYieldInterval = 300;
 let needsPaint = false;
 
+// 是否需要让出主线程
 function shouldYieldToHost() {
   if (
     enableIsInputPending &&
@@ -467,12 +497,14 @@ function shouldYieldToHost() {
       // regardless, since there could be a pending paint that wasn't
       // accompanied by a call to `requestPaint`, or other main thread tasks
       // like network events.
+      // 需要绘制或者有高优先级的 I/O, 必须得让出主线程
       if (needsPaint || scheduling.isInputPending()) {
         // There is either a pending paint or a pending input.
         return true;
       }
       // There's no pending input. Only yield if we've reached the max
       // yield interval.
+      // TODO: 恒定为 true 叭?
       return currentTime >= maxYieldInterval;
     } else {
       // There's still time left in the frame.
@@ -481,6 +513,7 @@ function shouldYieldToHost() {
   } else {
     // `isInputPending` is not available. Since we have no way of knowing if
     // there's pending input, always yield at the end of the frame.
+    // task 执行超过了 ddl 就应该让出主进程了
     return getCurrentTime() >= deadline;
   }
 }
