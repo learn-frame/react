@@ -133,7 +133,6 @@ function advanceTimers(currentTime) {
   let timer = peek(timerQueue);
   while (timer !== null) {
     if (timer.callback === null) {
-      // TODO: 下面看看为什么
       // Timer was cancelled.
       pop(timerQueue);
       // 重点: 开始时间小于等于当前时间, 说明已过期, 放到 taskQueue
@@ -172,7 +171,7 @@ function handleTimeout(currentTime) {
     } else {
       const firstTimer = peek(timerQueue);
       if (firstTimer !== null) {
-        // 递归, 延时执行 handleTimeout
+        // 延时执行 handleTimeout
         requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
       }
     }
