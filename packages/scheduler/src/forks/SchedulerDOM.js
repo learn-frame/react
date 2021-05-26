@@ -17,11 +17,11 @@ import {push, pop, peek} from '../SchedulerMinHeap';
 
 // TODO: Use symbols?
 import {
-  ImmediatePriority,
-  UserBlockingPriority,
-  NormalPriority,
-  LowPriority,
-  IdlePriority,
+  ImmediatePriority, // 1
+  UserBlockingPriority, // 2
+  NormalPriority, // 3
+  LowPriority, // 4
+  IdlePriority, // 5
 } from '../SchedulerPriorities';
 import {
   markTaskRun,
@@ -136,7 +136,7 @@ function advanceTimers(currentTime) {
       // TODO: 下面看看为什么
       // Timer was cancelled.
       pop(timerQueue);
-      // 开始时间小于等于当前时间, 说明已过期, 放到 taskQueue
+      // 重点: 开始时间小于等于当前时间, 说明已过期, 放到 taskQueue
     } else if (timer.startTime <= currentTime) {
       // Timer fired. Transfer to the task queue.
       pop(timerQueue);
@@ -149,7 +149,9 @@ function advanceTimers(currentTime) {
         timer.isQueued = true;
       }
     } else {
-      // 开始时间大于当前时间, 说明未过期, 任务仍然保留在 timerQueue
+      // 重点: 开始时间大于当前时间, 说明未过期, 任务仍然保留在 timerQueue
+      // 任务进来的时候, 开始时间默认是当前时间, 如果进入调度的时候传了延迟时间, 开始时间则是当前时间与延迟时间的和
+      // 开始时间越早, 说明会越早开始, 排在最小堆的前面
       // Remaining timers are pending.
       return;
     }
@@ -341,6 +343,7 @@ function unstable_wrapCallback(callback) {
   };
 }
 
+// 负责生成调度任务, 根据任务是否过期将任务放入 timerQueue 或 taskQueue, 然后触发调度行为, 让任务进入调度
 function unstable_scheduleCallback(priorityLevel, callback, options) {
   var currentTime = getCurrentTime();
 
@@ -358,6 +361,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     startTime = currentTime;
   }
 
+  // 计算 timeout
   var timeout;
   switch (priorityLevel) {
     case ImmediatePriority:
@@ -378,14 +382,23 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
       break;
   }
 
+  // 计算任务的过期时间, 任务开始时间 + timeout
+  // 若是立即执行的优先级(ImmediatePriority, IMMEDIATE_PRIORITY_TIMEOUT)
+  // 它的过期时间是 startTime - 1(), 意味着立刻就过期
   var expirationTime = startTime + timeout;
 
+  // 创建调度任务
   var newTask = {
     id: taskIdCounter++,
+    // 真正的任务函数, 重点
     callback,
+    // 任务优先级
     priorityLevel,
+    // 任务开始的时间, 表示任务何时才能执行
     startTime,
+    // 任务的过期时间
     expirationTime,
+    // 在小顶堆队列中排序的依据
     sortIndex: -1,
   };
   if (enableProfiling) {
@@ -585,6 +598,7 @@ const performWorkUntilDeadline = () => {
 };
 
 let schedulePerformWorkUntilDeadline;
+// lowB 浏览器用 setImmediate 模拟
 if (typeof setImmediate === 'function') {
   // Node.js and old IE.
   // There's a few reasons for why we prefer setImmediate.
@@ -601,6 +615,9 @@ if (typeof setImmediate === 'function') {
     setImmediate(performWorkUntilDeadline);
   };
 } else {
+  // 正经的浏览器用 MessageChannel
+  // port1 只用作接收方
+  // port2 只用作发送方
   const channel = new MessageChannel();
   const port = channel.port2;
   channel.port1.onmessage = performWorkUntilDeadline;
