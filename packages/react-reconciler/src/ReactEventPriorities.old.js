@@ -67,6 +67,7 @@ export function isHigherEventPriority(
   return a !== 0 && a < b;
 }
 
+// 用于将 lane 转换为 Scheduler 识别的优先级
 export function lanesToEventPriority(lanes: Lanes): EventPriority {
   const lane = getHighestPriorityLane(lanes);
   if (!isHigherEventPriority(DiscreteEventPriority, lane)) {

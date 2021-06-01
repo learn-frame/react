@@ -176,13 +176,13 @@ export type Fiber = {|
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
 
-  // Fiber 采用了双缓存(DoubleBuffer) 策略, 即:
+  // Fiber 采用了双缓冲(Double Buffering) 策略, 即:
   // 当前 Fiber 节点与 WorkInProgress 节点, 它们使用 alternate 属性相连
   // 用代码表示就是: 
   // currFiber.alternate = workInProgressFiber
   // workInProgressFiber.alternate = currFiber
   // workInProgressFiber 在内存中构建, 完了之后再跟 currFiber 替换
-  // 如果直接构建 currFiber, 势必会展示给用户白屏或闪烁, 这就是 DoubleBuffer 的优雅之处
+  // 如果直接构建 currFiber, 势必会展示给用户白屏或闪烁, 这就是 Double Buffering 的优雅之处
   alternate: Fiber | null,
 
   // Time spent rendering this Fiber and its descendants for the current update.
