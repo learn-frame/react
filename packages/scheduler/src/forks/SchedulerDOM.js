@@ -405,7 +405,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 
   // 计算任务的过期时间, 任务开始时间 + timeout
   // 若是立即执行的优先级(ImmediatePriority, IMMEDIATE_PRIORITY_TIMEOUT)
-  // 它的过期时间是 startTime - 1(), 意味着立刻就过期
+  // 它的过期时间是 startTime - 1, 意味着立刻就过期
   var expirationTime = startTime + timeout;
 
   // 创建调度任务
