@@ -568,6 +568,7 @@ const performWorkUntilDeadline = () => {
       hasMoreWork = scheduledHostCallback(hasTimeRemaining, currentTime);
     } finally {
       if (hasMoreWork) {
+        // 调度
         // If there's more work, schedule the next message event at the end
         // of the preceding one.
         schedulePerformWorkUntilDeadline();
@@ -603,12 +604,17 @@ if (typeof setImmediate === 'function') {
 } else {
   const channel = new MessageChannel();
   const port = channel.port2;
+
+  // port1 接收调度信号, 来执行 performWorkUntilDeadline
   channel.port1.onmessage = performWorkUntilDeadline;
+
+  // port 是发送者, 也就是调度者
   schedulePerformWorkUntilDeadline = () => {
     port.postMessage(null);
   };
 }
 
+// 调度
 function requestHostCallback(callback) {
   scheduledHostCallback = callback;
   if (!isMessageLoopRunning) {
