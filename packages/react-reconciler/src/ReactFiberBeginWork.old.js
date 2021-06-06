@@ -941,6 +941,7 @@ function updateFunctionComponent(
 
   // React DevTools reads this flag.
   workInProgress.flags |= PerformedWork;
+  // 将 ReactElement 转换成 FiberNode
   reconcileChildren(current, workInProgress, nextChildren, renderLanes);
   return workInProgress.child;
 }
@@ -3119,6 +3120,7 @@ function bailoutOnAlreadyFinishedWork(
   markSkippedUpdateLanes(workInProgress.lanes);
 
   // Check if the children have any pending work.
+  // 子树上也没有优先级高的更新需要在本次完成
   if (!includesSomeLane(renderLanes, workInProgress.childLanes)) {
     // The children don't have any work either. We can skip them.
     // TODO: Once we add back resuming, we should check if the children are
@@ -3138,6 +3140,7 @@ function bailoutOnAlreadyFinishedWork(
 
   // This fiber doesn't have work, but its subtree does. Clone the child
   // fibers and continue.
+  // 克隆子树到 workInProgress 上
   cloneChildFibers(current, workInProgress);
   return workInProgress.child;
 }
@@ -3228,6 +3231,9 @@ function beginWork(
     }
   }
 
+  // 只有初次渲染的时候, current 才不为 null
+  // 后面的更新只在 workInProgress 上
+  // 因此这个大的 if 就是初次渲染调和的过程
   if (current !== null) {
     // TODO: The factoring of this block is weird.
     if (
@@ -3243,6 +3249,7 @@ function beginWork(
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
 
+    // 首先判断 oldProps 和 newProps 是否相等
     if (
       oldProps !== newProps ||
       hasLegacyContextChanged() ||
@@ -3252,6 +3259,8 @@ function beginWork(
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
       didReceiveUpdate = true;
+      // 判断当前节点上的更新任务的优先级是否包含在了此次更新的优先级之中
+      // 如果不包含, 说明这次任务的优先级不高
     } else if (!includesSomeLane(renderLanes, updateLanes)) {
       didReceiveUpdate = false;
       // This fiber does not have any pending work. Bailout without entering
@@ -3352,6 +3361,8 @@ function beginWork(
               );
               // The primary children do not have pending work with sufficient
               // priority. Bailout.
+              // 上面说到该节点的优先级不高
+              // bailoutOnAlreadyFinishedWork 就是用来跳过该节点以及它的子节点
               const child = bailoutOnAlreadyFinishedWork(
                 current,
                 workInProgress,
@@ -3471,6 +3482,7 @@ function beginWork(
         // This is a special case that only exists for legacy mode.
         // See https://github.com/facebook/react/pull/19216.
         didReceiveUpdate = true;
+        // 如果相等就不需要更新
       } else {
         // An update was scheduled on this fiber, but there are no new props
         // nor legacy context. Set this to false. If an update queue or context
@@ -3490,6 +3502,7 @@ function beginWork(
   // move this assignment out of the common path and into each branch.
   workInProgress.lanes = NoLanes;
 
+  // 如果不是第一次渲染(也就是后续更新)
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       return mountIndeterminateComponent(
@@ -3515,7 +3528,8 @@ function beginWork(
       const resolvedProps =
         workInProgress.elementType === Component
           ? unresolvedProps
-          : resolveDefaultProps(Component, unresolvedProps);
+          : // 将 defaultProps merge 到 props 中
+            resolveDefaultProps(Component, unresolvedProps);
       return updateFunctionComponent(
         current,
         workInProgress,

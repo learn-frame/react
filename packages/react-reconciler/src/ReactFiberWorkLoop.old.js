@@ -272,12 +272,16 @@ const RootSuspendedWithDelay = 4;
 const RootCompleted = 5;
 
 // Describes where we are in the React execution stack
+// 当前 React 的执行栈(执行上下文)
 let executionContext: ExecutionContext = NoContext;
 // The root we're working on
+// 当前 root 节点
 let workInProgressRoot: FiberRoot | null = null;
 // The fiber we're working on
+// 正在处理中的 fiber 节点
 let workInProgress: Fiber | null = null;
 // The lanes we're rendering
+// 正在渲染的车道
 let workInProgressRootRenderLanes: Lanes = NoLanes;
 
 // Stack that allows components to change the render lanes for its subtree
@@ -288,22 +292,31 @@ let workInProgressRootRenderLanes: Lanes = NoLanes;
 //
 // Most things in the work loop should deal with workInProgressRootRenderLanes.
 // Most things in begin/complete phases should deal with subtreeRenderLanes.
+// 包含所有子节点的优先级, 是 workInProgressRootRenderLanes 的超集
+// 大多数情况下: 在工作循环整体层面会使用 workInProgressRootRenderLanes, 在 begin/complete 阶段层面会使用 subtreeRenderLanes
 export let subtreeRenderLanes: Lanes = NoLanes;
+
+// 一个栈结构: 专门存储当前节点的 subtreeRenderLanes
 const subtreeRenderLanesCursor: StackCursor<Lanes> = createCursor(NoLanes);
 
 // Whether to root completed, errored, suspended, etc.
+// fiber构造完后, root节点的状态: completed, errored, suspended等
 let workInProgressRootExitStatus: RootExitStatus = RootIncomplete;
 // A fatal error, if one is thrown
+// 重大错误
 let workInProgressRootFatalError: mixed = null;
 // "Included" lanes refer to lanes that were worked on during this render. It's
 // slightly different than `renderLanes` because `renderLanes` can change as you
 // enter and exit an Offscreen tree. This value is the combination of all render
 // lanes for the entire render phase.
+// 整个 render 期间所使用到的所有 lanes
 let workInProgressRootIncludedLanes: Lanes = NoLanes;
 // The work left over by components that were visited during this render. Only
 // includes unprocessed updates, not work in bailed out children.
+// 整个 render 期间被跳过的 lanes
 let workInProgressRootSkippedLanes: Lanes = NoLanes;
 // Lanes that were updated (in an interleaved event) during this render.
+// 在 render 期间被修改过的 lanes
 let workInProgressRootUpdatedLanes: Lanes = NoLanes;
 // Lanes that were pinged (in an interleaved event) during this render.
 let workInProgressRootPingedLanes: Lanes = NoLanes;
@@ -567,6 +580,7 @@ export function scheduleUpdateOnFiber(
       // 就走同步逻辑
       performSyncWorkOnRoot(root);
     } else {
+      // 进入 Scheduler
       ensureRootIsScheduled(root, eventTime);
       schedulePendingInteractions(root, lane);
       if (
@@ -1479,7 +1493,6 @@ export function renderHasNotSuspendedYet(): boolean {
   return workInProgressRootExitStatus === RootIncomplete;
 }
 
-
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
@@ -1675,7 +1688,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
   let next;
   if (enableProfilerTimer && (unitOfWork.mode & ProfileMode) !== NoMode) {
     startProfilerTimer(unitOfWork);
-    // beginWork 通过 workInProgress.tag 区分出当前 FiberNode 的类型, 
+    // beginWork 通过 workInProgress.tag 区分出当前 FiberNode 的类型,
     // 然后进行对应的更新处理
     next = beginWork(current, unitOfWork, subtreeRenderLanes);
     stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);

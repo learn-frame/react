@@ -477,6 +477,7 @@ export function createFiberFromTypeAndProps(
         resolvedType = resolveFunctionForHotReloading(resolvedType);
       }
     }
+    // html 标签
   } else if (typeof type === 'string') {
     fiberTag = HostComponent;
   } else {

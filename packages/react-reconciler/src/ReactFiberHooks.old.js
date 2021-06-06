@@ -381,7 +381,7 @@ export function renderWithHooks<Props, SecondArg>(
 
   // didScheduleRenderPhaseUpdate = false;
 
-  // TODO Warn if no hooks are used at all during mount, then some are used during update.
+  // TODO: Warn if no hooks are used at all during mount, then some are used during update.
   // Currently we will identify the update render as a mount because memoizedState === null.
   // This is tricky because it's valid for certain types of components (e.g. React.lazy)
 
