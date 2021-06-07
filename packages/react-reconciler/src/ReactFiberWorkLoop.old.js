@@ -1385,6 +1385,7 @@ function handleError(root, thrownValue): void {
         thrownValue,
         workInProgressRootRenderLanes,
       );
+      // 或者出错的时候
       completeUnitOfWork(erroredWork);
     } catch (yetAnotherThrownValue) {
       // Something in the return path also threw.
@@ -1721,6 +1722,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
     const returnFiber = completedWork.return;
 
     // Check if the work completed or if something threw.
+    // 正常的走 completeWork
     if ((completedWork.flags & Incomplete) === NoFlags) {
       setCurrentDebugFiberInDEV(completedWork);
       let next;
@@ -1742,6 +1744,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         workInProgress = next;
         return;
       }
+      // 如果出错了, 走 unwindWork
     } else {
       // This fiber did not complete because something threw. Pop values off
       // the stack without entering the complete phase. If this is a boundary,
@@ -1785,6 +1788,9 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
       }
     }
 
+    // 如果在"归"的过程中法发现有 sibling
+    // 退出"归"的过程
+    // 为该 sibling 执行"递", 也就是执行 performUnitWork
     const siblingFiber = completedWork.sibling;
     if (siblingFiber !== null) {
       // If there is more work to do in this returnFiber, do that next.

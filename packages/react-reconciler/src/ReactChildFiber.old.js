@@ -1409,6 +1409,10 @@ export function cloneChildFibers(
 }
 
 // Reset a workInProgress child set to prepare it for a second pass.
+// 在一波更新完成后, 需要更新所有子树的优先级
+// 比如一个 input 跟一个普通展示, 肯定 input 优先级高
+// 但当 input 执行完成后, 如果不更新优先级
+// 还会认为 input 是最高优的就不对了
 export function resetChildFibers(workInProgress: Fiber, lanes: Lanes): void {
   let child = workInProgress.child;
   while (child !== null) {

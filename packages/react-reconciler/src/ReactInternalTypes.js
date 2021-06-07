@@ -89,6 +89,7 @@ export type Fiber = {|
   type: any,
 
   // The local state associated with this fiber.
+  // RootFiber
   stateNode: any,
 
   // Conceptual aliases

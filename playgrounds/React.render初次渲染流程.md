@@ -8,4 +8,4 @@
 
 - _reactListening: boolean, 有一个方法叫做 `listenToAllSupportedEvents`, 也就是如果事件是被支持的, 这里就是 true.
 
-- _reactRootContainer: 这里就是 FiberRoot 类型了, 直接看图吧.
+- _reactRootContainer: 这里就是 FiberRoot 类型.

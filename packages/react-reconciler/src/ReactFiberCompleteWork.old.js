@@ -707,12 +707,14 @@ function bubbleProperties(completedWork: Fiber) {
       completedWork.treeBaseDuration = treeBaseDuration;
     } else {
       let child = completedWork.child;
+      // 富集所有的子 Fiber 上的 lanes
       while (child !== null) {
         newChildLanes = mergeLanes(
           newChildLanes,
           mergeLanes(child.lanes, child.childLanes),
         );
 
+        // 富集所有的子 Fiber 上的 flags
         subtreeFlags |= child.subtreeFlags;
         subtreeFlags |= child.flags;
 
