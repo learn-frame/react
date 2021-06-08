@@ -672,6 +672,7 @@ function bubbleProperties(completedWork: Fiber) {
   let newChildLanes = NoLanes;
   let subtreeFlags = NoFlags;
 
+  // 不能被跳过
   if (!didBailout) {
     // Bubble up the earliest expiration time.
     if (enableProfilerTimer && (completedWork.mode & ProfileMode) !== NoMode) {
@@ -708,13 +709,13 @@ function bubbleProperties(completedWork: Fiber) {
     } else {
       let child = completedWork.child;
       // 富集所有的子 Fiber 上的 lanes
+      // 富集所有的子 Fiber 上的 flags
       while (child !== null) {
         newChildLanes = mergeLanes(
           newChildLanes,
           mergeLanes(child.lanes, child.childLanes),
         );
 
-        // 富集所有的子 Fiber 上的 flags
         subtreeFlags |= child.subtreeFlags;
         subtreeFlags |= child.flags;
 
@@ -728,6 +729,7 @@ function bubbleProperties(completedWork: Fiber) {
     }
 
     completedWork.subtreeFlags |= subtreeFlags;
+    // 更新能被跳过
   } else {
     // Bubble up the earliest expiration time.
     if (enableProfilerTimer && (completedWork.mode & ProfileMode) !== NoMode) {
@@ -766,6 +768,7 @@ function bubbleProperties(completedWork: Fiber) {
         // so we should bubble those up even during a bailout. All the other
         // flags have a lifetime only of a single render + commit, so we should
         // ignore them.
+        // 忽略掉 StaticMask
         subtreeFlags |= child.subtreeFlags & StaticMask;
         subtreeFlags |= child.flags & StaticMask;
 
