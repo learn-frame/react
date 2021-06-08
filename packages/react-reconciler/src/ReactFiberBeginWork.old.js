@@ -995,10 +995,12 @@ function updateClassComponent(
       workInProgress.flags |= Placement;
     }
     // In the initial pass we might need to construct the instance.
+    // 第一次渲染, 先要生成实例
     constructClassInstance(workInProgress, Component, nextProps);
     mountClassInstance(workInProgress, Component, nextProps, renderLanes);
     shouldUpdate = true;
   } else if (current === null) {
+    // 中断恢复
     // In a resume, we'll already have an instance we can reuse.
     shouldUpdate = resumeMountClassInstance(
       workInProgress,
@@ -1007,6 +1009,7 @@ function updateClassComponent(
       renderLanes,
     );
   } else {
+    // 后续更新
     shouldUpdate = updateClassInstance(
       current,
       workInProgress,
@@ -3231,11 +3234,10 @@ function beginWork(
     }
   }
 
-  // 只有初次渲染的时候, current 才不为 null
-  // 后面的更新只在 workInProgress 上
-  // 因此这个大的 if 就是初次渲染调和的过程
+  // 复用 Fiber 节点的逻辑(优化)
   if (current !== null) {
     // TODO: The factoring of this block is weird.
+    // update 逻辑, 首次 render不会进入
     if (
       enableLazyContextPropagation &&
       !includesSomeLane(renderLanes, updateLanes)
@@ -3502,7 +3504,7 @@ function beginWork(
   // move this assignment out of the common path and into each branch.
   workInProgress.lanes = NoLanes;
 
-  // 如果不是第一次渲染(也就是后续更新)
+  // 更新节点的逻辑
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       return mountIndeterminateComponent(

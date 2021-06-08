@@ -196,6 +196,10 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
+  // 只获取最靠上的一层 DOM 节点, 将它 append 进去
+  // 因为 completeUnitWork 是从下往上的
+  // 对于最后一层, 最靠上的一层就是最后一层
+  // 这样回溯的话就可以全部 append 进去
   appendAllChildren = function(
     parent: Instance,
     workInProgress: Fiber,
@@ -206,12 +210,16 @@ if (supportsMutation) {
     // children to find all the terminal nodes.
     let node = workInProgress.child;
     while (node !== null) {
+      // 如果遇见了 HostComponent 或者 HostText
+      // 直接插进去进行
       if (node.tag === HostComponent || node.tag === HostText) {
+        // appendInitialChild 其实就是 parentInstance.appendChild(child);
         appendInitialChild(parent, node.stateNode);
       } else if (node.tag === HostPortal) {
         // If we have a portal child, then we don't want to traverse
         // down its children. Instead, we'll get insertions from each child in
         // the portal directly.
+        // 往下遍历
       } else if (node.child !== null) {
         node.child.return = node;
         node = node.child;
@@ -525,6 +533,8 @@ if (supportsMutation) {
       recyclableInstance,
     );
     if (
+      // 给 HTML 标签添加原生属性
+      // 并判断该标签是否需要 autoFocus
       finalizeInitialChildren(
         newInstance,
         type,
@@ -853,6 +863,7 @@ function completeWork(
       popHostContext(workInProgress);
       const rootContainerInstance = getRootHostContainer();
       const type = workInProgress.type;
+      // 后续更新(涉及到 diff)
       if (current !== null && workInProgress.stateNode != null) {
         updateHostComponent(
           current,
@@ -865,6 +876,7 @@ function completeWork(
         if (current.ref !== workInProgress.ref) {
           markRef(workInProgress);
         }
+        // 初次创建
       } else {
         if (!newProps) {
           invariant(
@@ -898,6 +910,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 创建 DOM 实例, 绑定原生属性
           const instance = createInstance(
             type,
             newProps,
@@ -906,6 +919,7 @@ function completeWork(
             workInProgress,
           );
 
+          // 添加到 DOM 节点
           appendAllChildren(instance, workInProgress, false, false);
 
           workInProgress.stateNode = instance;
@@ -914,6 +928,8 @@ function completeWork(
           // (eg DOM renderer supports auto-focus for certain elements).
           // Make sure such renderers get scheduled for later work.
           if (
+            // 给 HTML 标签添加原生属性
+            // 并判断该标签是否需要 autoFocus
             finalizeInitialChildren(
               instance,
               type,

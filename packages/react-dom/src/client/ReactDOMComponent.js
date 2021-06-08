@@ -287,10 +287,12 @@ function setInitialDOMProperties(
         }
       }
       // Relies on `updateStylesByID` not mutating `styleUpdates`.
+      // 处理内联 style
       setValueForStyles(domElement, nextProp);
     } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       const nextHtml = nextProp ? nextProp[HTML] : undefined;
       if (nextHtml != null) {
+        // 处理 dangerouslySetInnerHTML
         setInnerHTML(domElement, nextHtml);
       }
     } else if (propKey === CHILDREN) {
@@ -325,6 +327,7 @@ function setInitialDOMProperties(
           listenToNonDelegatedEvent('scroll', domElement);
         }
       }
+      // 各种绑定原生属性
     } else if (nextProp != null) {
       setValueForProperty(domElement, propKey, nextProp, isCustomComponentTag);
     }
@@ -386,6 +389,7 @@ export function createElement(
       }
     }
 
+    // script
     if (type === 'script') {
       // Create the script via .innerHTML so its "parser-inserted" flag is
       // set to true and it does not execute
@@ -403,11 +407,15 @@ export function createElement(
       }
       div.innerHTML = '<script><' + '/script>'; // eslint-disable-line
       // This is guaranteed to yield a script element.
+      // Node.removeChild() 方法从 DOM 中删除一个子节点, 返回删除的节点.
+      // 防止 script 被立即执行
       const firstChild = ((div.firstChild: any): HTMLScriptElement);
       domElement = div.removeChild(firstChild);
+      // web-component
     } else if (typeof props.is === 'string') {
       // $FlowIssue `createElement` should be updated for Web Components
       domElement = ownerDocument.createElement(type, {is: props.is});
+      // 普通 DOM 元素
     } else {
       // Separate else branch instead of using `props.is || undefined` above because of a Firefox bug.
       // See discussion in https://github.com/facebook/react/pull/6896
@@ -421,6 +429,7 @@ export function createElement(
       // - a bug where the `select` set the first item as selected despite the `size` attribute #14239
       // See https://github.com/facebook/react/issues/13222
       // and https://github.com/facebook/react/issues/14239
+      // 单独处理 select
       if (type === 'select') {
         const node = ((domElement: any): HTMLSelectElement);
         if (props.multiple) {
@@ -435,6 +444,7 @@ export function createElement(
       }
     }
   } else {
+    // 命名空间, 不考虑
     domElement = ownerDocument.createElementNS(namespaceURI, type);
   }
 
@@ -469,6 +479,8 @@ export function createTextNode(
   );
 }
 
+// 绑定事件
+// 给 HTML 标签绑定属性
 export function setInitialProperties(
   domElement: Element,
   tag: string,
@@ -526,6 +538,7 @@ export function setInitialProperties(
       listenToNonDelegatedEvent('toggle', domElement);
       props = rawProps;
       break;
+    // 以 input 为例
     case 'input':
       ReactDOMInputInitWrapperState(domElement, rawProps);
       props = ReactDOMInputGetHostProps(domElement, rawProps);
@@ -555,8 +568,13 @@ export function setInitialProperties(
       props = rawProps;
   }
 
+  // 1. 像 img, input 这些不能有 children, 如果你传入了 children, 告警
+  // 2. 规范 dangerouslySetInnerHTML 的使用语法
+  // 3. [DEV] 具有 contenteditable 属性的节点也不能有 children
+  // 4. 内联 style 必须为对象
   assertValidProps(tag, props);
 
+  // 初始化一些 DOM 属性
   setInitialDOMProperties(
     tag,
     domElement,
