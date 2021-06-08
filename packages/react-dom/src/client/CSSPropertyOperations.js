@@ -62,12 +62,16 @@ export function setValueForStyles(node, styles) {
     if (!styles.hasOwnProperty(styleName)) {
       continue;
     }
+    // --webkit
+    // 
     const isCustomProperty = styleName.indexOf('--') === 0;
     if (__DEV__) {
       if (!isCustomProperty) {
         warnValidStyle(styleName, styles[styleName]);
       }
     }
+    // value 为空或 boolean, 返回空字符串, 避免 xss
+    // 像素值没加 px 的, 给加上 px
     const styleValue = dangerousStyleValue(
       styleName,
       styles[styleName],

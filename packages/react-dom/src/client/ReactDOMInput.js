@@ -72,10 +72,15 @@ export function getHostProps(element: Element, props: Object) {
   return hostProps;
 }
 
+// 给 input[type='text'], input[type='checkbox'], input[type='radio']
+// 绑定上 defaultValue 和 value
 export function initWrapperState(element: Element, props: Object) {
   if (__DEV__) {
     checkControlledValueProps('input', props);
 
+    // 首先做一波判断
+    // 简单来讲就是你要么是受控组件, 要么是非受控组件
+    // 不能 value 和 defaultValue 都存在
     if (
       props.checked !== undefined &&
       props.defaultChecked !== undefined &&
@@ -112,10 +117,12 @@ export function initWrapperState(element: Element, props: Object) {
     }
   }
 
+  // 给 input 标签绑定上 defaultValue 或者 value
   const node = ((element: any): InputWithWrapperState);
   const defaultValue = props.defaultValue == null ? '' : props.defaultValue;
 
   node._wrapperState = {
+    // checkbox 跟 radio 同理
     initialChecked:
       props.checked != null ? props.checked : props.defaultChecked,
     initialValue: getToStringValue(

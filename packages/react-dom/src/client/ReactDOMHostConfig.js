@@ -287,13 +287,16 @@ export function createInstance(
   } else {
     parentNamespace = ((hostContext: any): HostContextProd);
   }
+  // 创建 DOM 节点
   const domElement: Instance = createElement(
     type,
     props,
     rootContainerInstance,
     parentNamespace,
   );
+  // 将 Fiber 对象挂在到 DOM 上
   precacheFiberNode(internalInstanceHandle, domElement);
+  // 将 props 对象挂在到 DOM 上
   updateFiberProps(domElement, props);
   return domElement;
 }
@@ -312,7 +315,9 @@ export function finalizeInitialChildren(
   rootContainerInstance: Container,
   hostContext: HostContext,
 ): boolean {
+  // 给 HTML 标签添加原生属性
   setInitialProperties(domElement, type, props, rootContainerInstance);
+  // 需不需要 autoFocus
   return shouldAutoFocusHostComponent(type, props);
 }
 
