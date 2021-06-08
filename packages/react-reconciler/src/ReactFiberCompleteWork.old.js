@@ -252,6 +252,7 @@ if (supportsMutation) {
     // If we have an alternate, that means this is an update and we need to
     // schedule a side-effect to do the updates.
     const oldProps = current.memoizedProps;
+    // 没有任何更新, 就直接返回
     if (oldProps === newProps) {
       // In mutation mode, this is sufficient for a bailout because
       // we won't touch this node even if children changed.
@@ -267,6 +268,9 @@ if (supportsMutation) {
     // TODO: Experiencing an error where oldProps is null. Suggests a host
     // component is hitting the resume path. Figure out why. Possibly
     // related to `hidden`.
+
+    // prepareUpdate 返回 diffProperties 方法, 也就是对属性做 diff
+    // updatePayload 承载着增删改的负载对象
     const updatePayload = prepareUpdate(
       instance,
       type,
@@ -276,10 +280,12 @@ if (supportsMutation) {
       currentHostContext,
     );
     // TODO: Type this specific to this type of component.
+    // updatePayload 就是 updateQueue!!!
     workInProgress.updateQueue = (updatePayload: any);
     // If the update payload indicates that there is a change or if there
     // is a new ref we mark this as an update. All the work is done in commitWork.
     if (updatePayload) {
+      // 给 workInProgress 的 flags 打上 Update 的标签
       markUpdate(workInProgress);
     }
   };
