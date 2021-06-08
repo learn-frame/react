@@ -1342,6 +1342,7 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
   }
 }
 
+// 在 workLoop 循环过程中的错误处理
 function handleError(root, thrownValue): void {
   do {
     let erroredWork = workInProgress;
@@ -1354,6 +1355,7 @@ function handleError(root, thrownValue): void {
       // separate issue. Write a regression test using string refs.
       ReactCurrentOwner.current = null;
 
+      // fatal error, 返回
       if (erroredWork === null || erroredWork.return === null) {
         // Expected to be working on a non-root fiber. This is a fatal error
         // because there's no ancestor that can handle it; the root is
@@ -1378,6 +1380,11 @@ function handleError(root, thrownValue): void {
         stopProfilerTimerIfRunningAndRecordDelta(erroredWork, true);
       }
 
+      // 向上抛出错误, 找到能接收错误的组件或生命周期方法
+      // getDerivedStateFromError
+      // componentDidCatch
+      // ErrorBoundary 等
+      // 即在 flags 加上 DidCapture 标记等
       throwException(
         root,
         erroredWork.return,
@@ -1385,12 +1392,15 @@ function handleError(root, thrownValue): void {
         thrownValue,
         workInProgressRootRenderLanes,
       );
-      // 或者出错的时候
+
+      // 既然当前节点已经出错了, 那就没法往下遍历了(preformUnitOfWork)
+      // 只能自此往上走, 这里执行的就是 unwindWork
       completeUnitOfWork(erroredWork);
     } catch (yetAnotherThrownValue) {
       // Something in the return path also threw.
       thrownValue = yetAnotherThrownValue;
       if (workInProgress === erroredWork && erroredWork !== null) {
+        // 往上冒泡错误
         // If this boundary has already errored, then we had trouble processing
         // the error. Bubble it to the next boundary.
         erroredWork = erroredWork.return;
@@ -1723,6 +1733,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
 
     // Check if the work completed or if something threw.
     // 正常的走 completeWork
+    // 有 Incomplete 说明被中断了
     if ((completedWork.flags & Incomplete) === NoFlags) {
       setCurrentDebugFiberInDEV(completedWork);
       let next;
@@ -1744,8 +1755,8 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         workInProgress = next;
         return;
       }
-      // 如果出错了, 走 unwindWork
     } else {
+      // 如果出错了, 走 unwindWork 的逻辑
       // This fiber did not complete because something threw. Pop values off
       // the stack without entering the complete phase. If this is a boundary,
       // capture values if possible.
