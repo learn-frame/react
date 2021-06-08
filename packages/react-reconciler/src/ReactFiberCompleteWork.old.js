@@ -296,6 +296,7 @@ if (supportsMutation) {
     newText: string,
   ) {
     // If the text differs, mark it as an update. All the work in done in commitWork.
+    // 直接判断新旧 text 是否相同
     if (oldText !== newText) {
       markUpdate(workInProgress);
     }
@@ -961,6 +962,7 @@ function completeWork(
     }
     case HostText: {
       const newText = newProps;
+      // 不是第一次渲染
       if (current && workInProgress.stateNode != null) {
         const oldText = current.memoizedProps;
         // If we have an alternate, that means this is an update and we need
@@ -983,6 +985,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 实际就是 document.createTextNode()
           workInProgress.stateNode = createTextInstance(
             newText,
             rootContainerInstance,
