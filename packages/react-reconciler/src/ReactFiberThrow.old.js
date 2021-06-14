@@ -289,6 +289,7 @@ function throwException(
           wakeables.add(wakeable);
         }
 
+        // 如果不是 Concurrent 模式, commit 阶段没法被中断
         // If the boundary is in legacy mode, we should *not*
         // suspend the commit. Pretend as if the suspended component rendered
         // null and keep rendering. In the commit phase, we'll schedule a

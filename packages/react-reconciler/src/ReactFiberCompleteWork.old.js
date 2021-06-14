@@ -252,6 +252,7 @@ if (supportsMutation) {
     // If we have an alternate, that means this is an update and we need to
     // schedule a side-effect to do the updates.
     const oldProps = current.memoizedProps;
+    // 没有任何更新, 就直接返回
     if (oldProps === newProps) {
       // In mutation mode, this is sufficient for a bailout because
       // we won't touch this node even if children changed.
@@ -267,6 +268,9 @@ if (supportsMutation) {
     // TODO: Experiencing an error where oldProps is null. Suggests a host
     // component is hitting the resume path. Figure out why. Possibly
     // related to `hidden`.
+
+    // prepareUpdate 返回 diffProperties 方法, 也就是对属性做 diff
+    // updatePayload 承载着增删改的负载对象
     const updatePayload = prepareUpdate(
       instance,
       type,
@@ -276,10 +280,12 @@ if (supportsMutation) {
       currentHostContext,
     );
     // TODO: Type this specific to this type of component.
+    // updatePayload 就是 updateQueue!!!
     workInProgress.updateQueue = (updatePayload: any);
     // If the update payload indicates that there is a change or if there
     // is a new ref we mark this as an update. All the work is done in commitWork.
     if (updatePayload) {
+      // 给 workInProgress 的 flags 打上 Update 的标签
       markUpdate(workInProgress);
     }
   };
@@ -290,6 +296,7 @@ if (supportsMutation) {
     newText: string,
   ) {
     // If the text differs, mark it as an update. All the work in done in commitWork.
+    // 直接判断新旧 text 是否相同
     if (oldText !== newText) {
       markUpdate(workInProgress);
     }
@@ -682,6 +689,7 @@ function bubbleProperties(completedWork: Fiber) {
   let newChildLanes = NoLanes;
   let subtreeFlags = NoFlags;
 
+  // 不能被跳过
   if (!didBailout) {
     // Bubble up the earliest expiration time.
     if (enableProfilerTimer && (completedWork.mode & ProfileMode) !== NoMode) {
@@ -718,13 +726,13 @@ function bubbleProperties(completedWork: Fiber) {
     } else {
       let child = completedWork.child;
       // 富集所有的子 Fiber 上的 lanes
+      // 富集所有的子 Fiber 上的 flags
       while (child !== null) {
         newChildLanes = mergeLanes(
           newChildLanes,
           mergeLanes(child.lanes, child.childLanes),
         );
 
-        // 富集所有的子 Fiber 上的 flags
         subtreeFlags |= child.subtreeFlags;
         subtreeFlags |= child.flags;
 
@@ -738,6 +746,7 @@ function bubbleProperties(completedWork: Fiber) {
     }
 
     completedWork.subtreeFlags |= subtreeFlags;
+    // 更新能被跳过
   } else {
     // Bubble up the earliest expiration time.
     if (enableProfilerTimer && (completedWork.mode & ProfileMode) !== NoMode) {
@@ -776,6 +785,7 @@ function bubbleProperties(completedWork: Fiber) {
         // so we should bubble those up even during a bailout. All the other
         // flags have a lifetime only of a single render + commit, so we should
         // ignore them.
+        // 忽略掉 StaticMask
         subtreeFlags |= child.subtreeFlags & StaticMask;
         subtreeFlags |= child.flags & StaticMask;
 
@@ -952,6 +962,7 @@ function completeWork(
     }
     case HostText: {
       const newText = newProps;
+      // 不是第一次渲染
       if (current && workInProgress.stateNode != null) {
         const oldText = current.memoizedProps;
         // If we have an alternate, that means this is an update and we need
@@ -974,6 +985,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 实际就是 document.createTextNode()
           workInProgress.stateNode = createTextInstance(
             newText,
             rootContainerInstance,

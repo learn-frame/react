@@ -627,8 +627,10 @@ export function diffProperties(
 
   let lastProps: Object;
   let nextProps: Object;
+  // 获取新旧 props
   switch (tag) {
     case 'input':
+      // 获取新旧 defaultChecked, defaultValue, checked, value
       lastProps = ReactDOMInputGetHostProps(domElement, lastRawProps);
       nextProps = ReactDOMInputGetHostProps(domElement, nextRawProps);
       updatePayload = [];
@@ -656,24 +658,37 @@ export function diffProperties(
         typeof nextProps.onClick === 'function'
       ) {
         // TODO: This cast may not be sound for SVG, MathML or custom elements.
+        // domElement.onclick = noo
         trapClickOnNonInteractiveElement(((domElement: any): HTMLElement));
       }
       break;
   }
 
+  // 1. 像 img, input 这些不能有 children, 如果你传入了 children, 告警
+  // 2. 规范 dangerouslySetInnerHTML 的使用语法
+  // 3. [DEV] 具有 contenteditable 属性的节点也不能有 children
+  // 4. 内联 style 必须为对象
   assertValidProps(tag, nextProps);
 
   let propKey;
   let styleName;
   let styleUpdates = null;
+  // 遍历旧的 props
   for (propKey in lastProps) {
     if (
+      // 如果新的有某属性, 或者旧的没有, 跳过
+      // 它就不是一个删除操作
       nextProps.hasOwnProperty(propKey) ||
       !lastProps.hasOwnProperty(propKey) ||
       lastProps[propKey] == null
     ) {
       continue;
     }
+
+    /*
+     * 下面是删除
+     */
+    // 把旧的样式置为空
     if (propKey === STYLE) {
       const lastStyle = lastProps[propKey];
       for (styleName in lastStyle) {
@@ -703,12 +718,15 @@ export function diffProperties(
     } else {
       // For all other deleted properties we add it to the queue. We use
       // the allowed property list in the commit phase instead.
+      // 对于要[删除]的属性, value 为 null
       (updatePayload = updatePayload || []).push(propKey, null);
     }
   }
+  // 遍历新的 props, [更新]属性
   for (propKey in nextProps) {
     const nextProp = nextProps[propKey];
     const lastProp = lastProps != null ? lastProps[propKey] : undefined;
+    // 没有变化
     if (
       !nextProps.hasOwnProperty(propKey) ||
       nextProp === lastProp ||
@@ -716,6 +734,7 @@ export function diffProperties(
     ) {
       continue;
     }
+    // 样式更新
     if (propKey === STYLE) {
       if (__DEV__) {
         if (nextProp) {
@@ -746,6 +765,7 @@ export function diffProperties(
             if (!styleUpdates) {
               styleUpdates = {};
             }
+            // 将新的赋值
             styleUpdates[styleName] = nextProp[styleName];
           }
         }
@@ -759,6 +779,7 @@ export function diffProperties(
         }
         styleUpdates = nextProp;
       }
+      // dangerouslySetInnerHTML 有木有更新
     } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       const nextHtml = nextProp ? nextProp[HTML] : undefined;
       const lastHtml = lastProp ? lastProp[HTML] : undefined;
@@ -770,6 +791,7 @@ export function diffProperties(
         // TODO: It might be too late to clear this if we have children
         // inserted already.
       }
+      // chilren 更新, 只关心 string 或 number 类型的
     } else if (propKey === CHILDREN) {
       if (typeof nextProp === 'string' || typeof nextProp === 'number') {
         (updatePayload = updatePayload || []).push(propKey, '' + nextProp);
@@ -807,6 +829,7 @@ export function diffProperties(
     } else {
       // For any other property we always add it to the queue and then we
       // filter it out using the allowed property list during the commit.
+      // [新增]的属性
       (updatePayload = updatePayload || []).push(propKey, nextProp);
     }
   }
@@ -816,6 +839,7 @@ export function diffProperties(
     }
     (updatePayload = updatePayload || []).push(STYLE, styleUpdates);
   }
+  // 返回承载着增删改的负载对象
   return updatePayload;
 }
 
