@@ -481,6 +481,7 @@ export function appendChild(
   parentInstance.appendChild(child);
 }
 
+// appendChild
 export function appendChildToContainer(
   container: Container,
   child: Instance | TextInstance,
@@ -519,6 +520,7 @@ export function insertBefore(
   parentInstance.insertBefore(child, beforeChild);
 }
 
+// inserBofore
 export function insertInContainerBefore(
   container: Container,
   child: Instance | TextInstance,

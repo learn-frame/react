@@ -190,6 +190,7 @@ function safelyCallCommitHookLayoutEffectListMount(
   current: Fiber,
   nearestMountedAncestor: Fiber | null,
 ) {
+  // 开发环境下捕获错误
   if (__DEV__) {
     invokeGuardedCallback(
       null,
@@ -1578,6 +1579,7 @@ function commitPlacement(finishedWork: Fiber): void {
   }
 
   // Recursively insert all host nodes into the parent.
+  // 以 HostComponent / HostRoot / 作为 parent
   const parentFiber = getHostParentFiber(finishedWork);
 
   // Note: these two variables *must* always be updated together.
@@ -1612,10 +1614,12 @@ function commitPlacement(finishedWork: Fiber): void {
     parentFiber.flags &= ~ContentReset;
   }
 
+  // 总之找到一个 DOM 节点, 能将这次新增的节点插进去
   const before = getHostSibling(finishedWork);
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.
   if (isContainer) {
+    // 如果是 div#root
     insertOrAppendPlacementNodeIntoContainer(finishedWork, before, parent);
   } else {
     insertOrAppendPlacementNode(finishedWork, before, parent);
@@ -1632,8 +1636,10 @@ function insertOrAppendPlacementNodeIntoContainer(
   if (isHost) {
     const stateNode = node.stateNode;
     if (before) {
+      // 插在某个 DOM 节点的第一个子节点之前
       insertInContainerBefore(parent, stateNode, before);
     } else {
+      // 插在某个 DOM 节点中的最后
       appendChildToContainer(parent, stateNode);
     }
   } else if (tag === HostPortal) {
@@ -1641,6 +1647,7 @@ function insertOrAppendPlacementNodeIntoContainer(
     // down its children. Instead, we'll get insertions from each child in
     // the portal directly.
   } else {
+    // 递归
     const child = node.child;
     if (child !== null) {
       insertOrAppendPlacementNodeIntoContainer(child, before, parent);
@@ -2172,6 +2179,7 @@ export function commitMutationEffects(
   inProgressRoot = null;
 }
 
+// 删除在 begin 阶段做
 function commitMutationEffects_begin(root: FiberRoot) {
   while (nextEffect !== null) {
     const fiber = nextEffect;
@@ -2214,6 +2222,7 @@ function commitMutationEffects_begin(root: FiberRoot) {
   }
 }
 
+//  新增/更新在 complete 阶段做
 function commitMutationEffects_complete(root: FiberRoot) {
   while (nextEffect !== null) {
     const fiber = nextEffect;
