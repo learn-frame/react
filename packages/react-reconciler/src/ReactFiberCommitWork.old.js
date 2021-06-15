@@ -1835,6 +1835,7 @@ function commitDeletion(
   detachFiberMutation(current);
 }
 
+// 更新内容 / DOM 属性
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
   if (!supportsMutation) {
     switch (finishedWork.tag) {

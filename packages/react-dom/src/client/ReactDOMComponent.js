@@ -859,9 +859,11 @@ export function updateProperties(
     nextRawProps.type === 'radio' &&
     nextRawProps.name != null
   ) {
+    // 如果是 input 或 radio, 增加 checked 属性
     ReactDOMInputUpdateChecked(domElement, nextRawProps);
   }
 
+  // 一些 web component 的东东
   const wasCustomComponentTag = isCustomComponent(tag, lastRawProps);
   const isCustomComponentTag = isCustomComponent(tag, nextRawProps);
   // Apply the diff.
