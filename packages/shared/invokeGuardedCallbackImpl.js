@@ -165,6 +165,8 @@ if (__DEV__) {
       function handleWindowError(event) {
         error = event.error;
         didSetError = true;
+        // 开发环境使用的 react 包为 cdn, 跨域
+        // 可以给 script 标签加上 crossorigin 属性
         if (error === null && event.colno === 0 && event.lineno === 0) {
           isCrossOriginError = true;
         }
