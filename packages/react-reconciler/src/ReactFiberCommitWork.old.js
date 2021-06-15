@@ -2345,6 +2345,7 @@ function commitLayoutEffects_begin(
     const fiber = nextEffect;
     const firstChild = fiber.child;
 
+    // concurrent 模式
     if (enableSuspenseLayoutEffectSemantics && isModernRoot) {
       // Keep track of the current Offscreen stack's state.
       if (fiber.tag === OffscreenComponent) {

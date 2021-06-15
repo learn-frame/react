@@ -1827,6 +1827,7 @@ function commitRoot(root) {
   const prevTransition = ReactCurrentBatchConfig.transition;
   try {
     ReactCurrentBatchConfig.transition = 0;
+    // 离散的事件优先级
     setCurrentUpdatePriority(DiscreteEventPriority);
     commitRootImpl(root, previousUpdateLanePriority);
   } finally {
