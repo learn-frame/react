@@ -1974,6 +1974,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // getSnapshotBeforeUpdate is called.
 
     // Mutation Before
+    // DOM 变更之前, 处理副作用队列中带有 Snapshot, Passive 标记的 fiber 节点
     const shouldFireAfterActiveInstanceBlur = commitBeforeMutationEffects(
       root,
       finishedWork,
@@ -1994,6 +1995,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The next phase is the mutation phase, where we mutate the host tree.
 
     // Mutation Host
+    //  DOM 变更, 界面得到更新. 处理副作用队列中带有 ContentReset, Ref, Placement, Update, Deletion, Hydrating 标记的 fiber 节点.
     commitMutationEffects(root, finishedWork, lanes);
 
     if (shouldFireAfterActiveInstanceBlur) {
@@ -2018,6 +2020,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     if (enableSchedulingProfiler) {
       markLayoutEffectsStarted(lanes);
     }
+    // 处理生命周期
     commitLayoutEffects(finishedWork, root, lanes);
     if (__DEV__) {
       if (enableDebugTracing) {

@@ -1818,6 +1818,7 @@ function unmountHostComponents(
   }
 }
 
+// 删除
 function commitDeletion(
   finishedRoot: FiberRoot,
   current: Fiber,
@@ -2463,6 +2464,7 @@ function commitLayoutMountEffects_complete(
         case ClassComponent: {
           const instance = fiber.stateNode;
           if (typeof instance.componentDidMount === 'function') {
+            // 执行 ComponentDidMount
             safelyCallComponentDidMount(fiber, fiber.return, instance);
           }
           break;
