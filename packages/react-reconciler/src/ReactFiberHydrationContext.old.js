@@ -74,11 +74,13 @@ function warnIfHydrating() {
   }
 }
 
+// supportsHydration 是写死的 true
 function enterHydrationState(fiber: Fiber): boolean {
   if (!supportsHydration) {
     return false;
   }
 
+  // div#root
   const parentInstance = fiber.stateNode.containerInfo;
   nextHydratableInstance = getFirstHydratableChild(parentInstance);
   hydrationParentFiber = fiber;
@@ -198,11 +200,16 @@ function insertNonHydratedInstance(returnFiber: Fiber, fiber: Fiber) {
   }
 }
 
+// 判断当前更新的节点, 是否跟 Hydrate 提供的节点相等
+// 相等就可复用
 function tryHydrate(fiber, nextInstance) {
   switch (fiber.tag) {
     case HostComponent: {
       const type = fiber.type;
       const props = fiber.pendingProps;
+      // 是否能复用节点
+      // 判断 nextInstance 是否是 html 标签
+      // 并且两者 html 的标签名相等 
       const instance = canHydrateInstance(nextInstance, type, props);
       if (instance !== null) {
         fiber.stateNode = (instance: Instance);
@@ -250,10 +257,13 @@ function tryHydrate(fiber, nextInstance) {
 }
 
 function tryToClaimNextHydratableInstance(fiber: Fiber): void {
+  // enterHydrationState() 将 isHydrating 设为了 true
   if (!isHydrating) {
     return;
   }
   let nextInstance = nextHydratableInstance;
+
+  // 没有合法的子节点, 说明没得 hydrate
   if (!nextInstance) {
     // Nothing to hydrate. Make it an insertion.
     insertNonHydratedInstance((hydrationParentFiber: any), fiber);

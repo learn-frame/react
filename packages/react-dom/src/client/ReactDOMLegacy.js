@@ -95,7 +95,7 @@ function getReactRootElementInContainer(container: any) {
   }
 
   if (container.nodeType === DOCUMENT_NODE) {
-    return container.documentElement;
+    return container.documentElement; // html 节点
   } else {
     return container.firstChild;
   }
@@ -177,7 +177,7 @@ function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
   container: Container,
-  forceHydrate: boolean,
+  forceHydrate: boolean, // true 就是使用注水
   callback: ?Function,
 ) {
   if (__DEV__) {

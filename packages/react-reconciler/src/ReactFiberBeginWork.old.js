@@ -1238,6 +1238,7 @@ function updateHostComponent(
 ) {
   pushHostContext(workInProgress);
 
+  // 初次创建时没有 current, 先试试 hydrate
   if (current === null) {
     tryToClaimNextHydratableInstance(workInProgress);
   }

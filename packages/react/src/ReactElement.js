@@ -247,8 +247,10 @@ export function jsx(type, config, maybeKey) {
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {
-      if (props[propName] === undefined) {
-        props[propName] = defaultProps[propName];
+      if (defaultProps.hasOwnProperty(propName)) {
+        if (props[propName] === undefined) {
+          props[propName] = defaultProps[propName];
+        }
       }
     }
   }
@@ -259,7 +261,7 @@ export function jsx(type, config, maybeKey) {
     ref,
     undefined,
     undefined,
-    ReactCurrentOwner.current,
+    ReactCurrentOwner.current, // Fiber
     props,
   );
 }

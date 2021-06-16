@@ -108,6 +108,7 @@ export function createFiberRoot(
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
   strictModeLevelOverride: null | number,
 ): FiberRoot {
+  // 在 FiberRoot 打上 hydrate 的标记
   const root: FiberRoot = (new FiberRootNode(containerInfo, tag, hydrate): any);
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;

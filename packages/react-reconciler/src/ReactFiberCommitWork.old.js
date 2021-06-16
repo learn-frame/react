@@ -1204,8 +1204,12 @@ function commitAttachRef(finishedWork: Fiber) {
   }
 }
 
-// 更新前
-// 把 ref.current 清理掉
+// 
+// 如果更新涉及到了 ref, 就把 ref.current 清理掉
+// ref 可以用对象的形式, 如果是对象, 就把 currentRef.current 清理掉
+// 也可以用函数的形式, 也就是所谓 Callback Refs, 不过老子没用过...
+// 此时传入 null 执行下就清理掉的
+// https://reactjs.org/docs/refs-and-the-dom.html#callback-refs
 function commitDetachRef(current: Fiber) {
   const currentRef = current.ref;
   if (currentRef !== null) {

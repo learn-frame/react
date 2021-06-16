@@ -243,7 +243,7 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
-// 创建容器
+// 创建容器, 也就是 FiberRoot
 export function createContainer(
   containerInfo: Container,
   tag: RootTag,
