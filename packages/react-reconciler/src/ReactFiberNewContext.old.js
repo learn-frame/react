@@ -201,6 +201,7 @@ function propagateContextChange_eager<T>(
     // Set the return pointer of the child to the work-in-progress fiber.
     fiber.return = workInProgress;
   }
+  // 遍历子节点
   while (fiber !== null) {
     let nextFiber;
 
@@ -210,10 +211,21 @@ function propagateContextChange_eager<T>(
       nextFiber = fiber.child;
 
       let dependency = list.firstContext;
+      /* {
+        context: {
+          $$typeof: Symbol(react.context),
+          Provider: ...
+          Consumer: ...
+        },
+        memoizedValue: {},
+        next: {},
+      }; */
       while (dependency !== null) {
         // Check if the context matches.
         if (dependency.context === context) {
           // Match! Schedule an update on this fiber.
+          // context 更新了, 虽然 ClassComponent 没有显式的更新
+          // 但它也应该被触发更新, 因此打上 ForceUpdate 的标记
           if (fiber.tag === ClassComponent) {
             // Schedule a force update on the work-in-progress.
             const lane = pickArbitraryLane(renderLanes);
@@ -247,6 +259,7 @@ function propagateContextChange_eager<T>(
           if (alternate !== null) {
             alternate.lanes = mergeLanes(alternate.lanes, renderLanes);
           }
+          // 更新优先级
           scheduleWorkOnParentPath(fiber.return, renderLanes);
 
           // Mark the updated lanes on the list, too.

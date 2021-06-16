@@ -2999,12 +2999,14 @@ function updateContextProvider(
   } else {
     if (oldProps !== null) {
       const oldValue = oldProps.value;
+      // Object.is
       if (is(oldValue, newValue)) {
         // No change. Bailout early if children are the same.
         if (
           oldProps.children === newProps.children &&
           !hasLegacyContextChanged()
         ) {
+          // 可跳过更新
           return bailoutOnAlreadyFinishedWork(
             current,
             workInProgress,
@@ -3014,6 +3016,7 @@ function updateContextProvider(
       } else {
         // The context value changed. Search for matching consumers and schedule
         // them to update.
+        // 不可跳过更新
         propagateContextChange(workInProgress, context, renderLanes);
       }
     }
@@ -3058,6 +3061,8 @@ function updateContextConsumer(
     }
   }
   const newProps = workInProgress.pendingProps;
+  // Consumer 的 chilren 是个函数
+  // https://reactjs.org/docs/context.html#contextconsumer
   const render = newProps.children;
 
   if (__DEV__) {
@@ -3070,7 +3075,8 @@ function updateContextConsumer(
       );
     }
   }
-
+  // 将 dependencies.firstContext 设为 null
+  // 如果有更新将 didReceiveUpdate 设为 true
   prepareToReadContext(workInProgress, renderLanes);
   const newValue = readContext(context);
   let newChildren;
