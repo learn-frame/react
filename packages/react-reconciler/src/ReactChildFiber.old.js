@@ -151,6 +151,7 @@ function coerceRef(
       }
     }
 
+    // element._owner 其实就是 Fiber 对象
     if (element._owner) {
       const owner: ?Fiber = (element._owner: any);
       let inst;

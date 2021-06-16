@@ -1155,6 +1155,8 @@ function hideOrUnhideAllChildren(finishedWork, isHidden) {
   }
 }
 
+// 更新后, 再挂载 ref
+// ref.current 指向 stateNode
 function commitAttachRef(finishedWork: Fiber) {
   const ref = finishedWork.ref;
   if (ref !== null) {
@@ -1202,6 +1204,8 @@ function commitAttachRef(finishedWork: Fiber) {
   }
 }
 
+// 更新前
+// 把 ref.current 清理掉
 function commitDetachRef(current: Fiber) {
   const currentRef = current.ref;
   if (currentRef !== null) {
