@@ -140,6 +140,7 @@ function createRootImpl(
 
   const rootContainerElement =
     container.nodeType === COMMENT_NODE ? container.parentNode : container;
+  // 监听事件
   listenToAllSupportedEvents(rootContainerElement);
 
   if (mutableSources) {

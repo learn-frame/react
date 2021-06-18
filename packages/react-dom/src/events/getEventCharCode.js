@@ -17,6 +17,7 @@
  * @param {object} nativeEvent Native browser event.
  * @return {number} Normalized `charCode` property.
  */
+// 兼容键盘 charCode
 function getEventCharCode(nativeEvent: KeyboardEvent): number {
   let charCode;
   const keyCode = nativeEvent.keyCode;

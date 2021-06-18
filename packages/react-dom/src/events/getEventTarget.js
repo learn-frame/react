@@ -14,6 +14,7 @@ import {TEXT_NODE} from '../shared/HTMLNodeType';
  * @param {object} nativeEvent Native browser event.
  * @return {DOMEventTarget} Target node.
  */
+// 兼容 event.target
 function getEventTarget(nativeEvent) {
   // Fallback to nativeEvent.srcElement for IE9
   // https://github.com/facebook/react/issues/12506

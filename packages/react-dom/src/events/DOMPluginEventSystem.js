@@ -235,6 +235,7 @@ function processDispatchQueueItemsInOrder(
   inCapturePhase: boolean,
 ): void {
   let previousInstance;
+  // 捕获, 从上往下执行, 即按照 dispatchListeners 逆序执行
   if (inCapturePhase) {
     for (let i = dispatchListeners.length - 1; i >= 0; i--) {
       const {instance, currentTarget, listener} = dispatchListeners[i];
@@ -244,6 +245,7 @@ function processDispatchQueueItemsInOrder(
       executeDispatch(event, listener, currentTarget);
       previousInstance = instance;
     }
+    // 冒泡, 从上=下往上执行, 即按照 dispatchListeners 顺序执行
   } else {
     for (let i = 0; i < dispatchListeners.length; i++) {
       const {instance, currentTarget, listener} = dispatchListeners[i];
@@ -416,6 +418,7 @@ function addTrappedEventListener(
   isCapturePhaseListener: boolean,
   isDeferredListenerForLegacyFBSupport?: boolean,
 ) {
+  // 给 eventHandler 包装优先级
   let listener = createEventListenerWrapperWithPriority(
     targetContainer,
     domEventName,
@@ -424,6 +427,9 @@ function addTrappedEventListener(
   // If passive option is not supported, then the event will be
   // active and not passive.
   let isPassiveListener = undefined;
+
+  // 是否支持 passive 可选项
+  // window.addEventListener('EVENT_NAME', () => {}, {passive: true})
   if (passiveBrowserEventsSupported) {
     // Browsers introduced an intervention, making these events
     // passive by default on document. React doesn't bind them

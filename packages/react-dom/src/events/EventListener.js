@@ -7,6 +7,8 @@
  * @flow
  */
 
+// 各种 addEventListener
+
 export function addEventBubbleListener(
   target: EventTarget,
   eventType: string,

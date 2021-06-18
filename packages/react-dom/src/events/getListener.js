@@ -58,11 +58,15 @@ export default function getListener(
     // Work in progress (ex: onload events in incremental mode).
     return null;
   }
+  // dom节点[internalPropsKey]
   const props = getFiberCurrentPropsFromNode(stateNode);
   if (props === null) {
     // Work in progress.
     return null;
   }
+
+  // registrationName 就是复合事件名, 比如 onClick
+  // listener 就是事件监听的 handler, 比如 () => this.clickMyButton()
   const listener = props[registrationName];
   if (shouldPreventMouseEvent(registrationName, inst.type, props)) {
     return null;

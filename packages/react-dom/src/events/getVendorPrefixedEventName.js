@@ -14,6 +14,7 @@ import {canUseDOM} from 'shared/ExecutionEnvironment';
  * @param {string} eventName
  * @returns {object}
  */
+// 各种兼容, 加装 webkit / moz 前缀
 function makePrefixMap(styleProp, eventName) {
   const prefixes = {};
 

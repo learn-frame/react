@@ -19,6 +19,7 @@ import {
 
 import {enableCreateEventHandleAPI} from 'shared/ReactFeatureFlags';
 
+// 一个 Map
 export const topLevelEventsToReactNames: Map<
   DOMEventName,
   string | null,
@@ -111,7 +112,10 @@ if (enableCreateEventHandleAPI) {
 }
 
 function registerSimpleEvent(domEventName, reactName) {
+  // 一个 Map
   topLevelEventsToReactNames.set(domEventName, reactName);
+  // 双阶段, 其实就是冒泡和捕获
+  // 即给每个事件注册一个冒泡, 注册一个捕获
   registerTwoPhaseEvent(reactName, [domEventName]);
 }
 

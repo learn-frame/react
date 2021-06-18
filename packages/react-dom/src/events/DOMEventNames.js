@@ -9,6 +9,7 @@
 
 import getVendorPrefixedEventName from './getVendorPrefixedEventName';
 
+// 枚举各种 DOM 事件名, 并给一些新潮的, 加上 webkit / moz
 export type DOMEventName =
   | 'abort'
   | 'afterblur' // Not a real event. This is used by event experiments.

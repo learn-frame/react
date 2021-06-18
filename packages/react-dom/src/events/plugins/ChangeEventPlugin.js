@@ -125,6 +125,7 @@ function getTargetInstForChangeEvent(domEventName: DOMEventName, targetInst) {
  */
 let isInputEventSupported = false;
 if (canUseDOM) {
+  // 又是兼容傻逼 IE
   // IE9 claims to support the input event but fails to trigger it when
   // deleting text, so we ignore its input events.
   isInputEventSupported =

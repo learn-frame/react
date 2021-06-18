@@ -32,6 +32,7 @@ export const registrationNameDependencies = {};
 export const possibleRegistrationNames = __DEV__ ? {} : (null: any);
 // Trust the developer to only use possibleRegistrationNames in __DEV__
 
+// 绑定冒泡和捕获
 export function registerTwoPhaseEvent(
   registrationName: string,
   dependencies: Array<DOMEventName>,

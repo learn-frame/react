@@ -22,6 +22,9 @@ import {canUseDOM} from 'shared/ExecutionEnvironment';
  * @internal
  * @license Modernizr 3.0.0pre (Custom Build) | MIT
  */
+// 你如果写了一个不存在的事件, 比如 onFuck
+// 就把它的 handler 设为 return;
+// 就类似于 javascript:void(0)
 function isEventSupported(eventNameSuffix: string): boolean {
   if (!canUseDOM) {
     return false;

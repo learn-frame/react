@@ -540,8 +540,8 @@ if (supportsMutation) {
       recyclableInstance,
     );
     if (
-      // 给 HTML 标签添加原生属性
-      // 并判断该标签是否需要 autoFocus
+      // 给 HTML 标签添加原生属性, 绑定事件
+      // 判断该标签是否需要 autoFocus
       finalizeInitialChildren(
         newInstance,
         type,

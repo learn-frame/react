@@ -288,6 +288,8 @@ export function attemptToDispatchEvent(
   return null;
 }
 
+// 根据事件名获取它的优先级
+// 用于 Fiber
 export function getEventPriority(domEventName: DOMEventName): * {
   switch (domEventName) {
     // Used by SimpleEventPlugin:
