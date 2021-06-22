@@ -402,6 +402,7 @@ export function renderWithHooks<Props, SecondArg>(
       ReactCurrentDispatcher.current = HooksDispatcherOnMountInDEV;
     }
   } else {
+    // 通过判断 current / memoizedState 是否存在来判断是新增 Hooks 还是更新 Hooks
     ReactCurrentDispatcher.current =
       current === null || current.memoizedState === null
         ? HooksDispatcherOnMount
@@ -600,10 +601,12 @@ function mountWorkInProgressHook(): Hook {
     next: null,
   };
 
+  // 如果第一个 Hooks 挂载到 Fiber 的 memoizedState
   if (workInProgressHook === null) {
     // This is the first hook in the list
     currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
   } else {
+    // 如果不是第一个 Hooks, 挂载到 workInProgressHook 链表的最后
     // Append to the end of the list
     workInProgressHook = workInProgressHook.next = hook;
   }
@@ -689,6 +692,7 @@ function mountReducer<S, I, A>(
 ): [S, Dispatch<A>] {
   const hook = mountWorkInProgressHook();
   let initialState;
+  // 一般也不用第三个参数
   if (init !== undefined) {
     initialState = init(initialArg);
   } else {
@@ -820,6 +824,7 @@ function updateReducer<S, I, A>(
         }
       }
       update = update.next;
+      // 循环链表执行了一遍了
     } while (update !== null && update !== first);
 
     if (newBaseQueueLast === null) {
@@ -1911,6 +1916,7 @@ function dispatchAction<S, A>(
   const eventTime = requestEventTime();
   const lane = requestUpdateLane(fiber);
 
+  // 获取更新
   const update: Update<S, A> = {
     lane,
     action,
@@ -1929,6 +1935,7 @@ function dispatchAction<S, A>(
     // and apply the stashed updates on top of the work-in-progress hook.
     didScheduleRenderPhaseUpdateDuringThisPass = didScheduleRenderPhaseUpdate = true;
     const pending = queue.pending;
+    // 循环链表
     if (pending === null) {
       // This is the first update. Create a circular list.
       update.next = update;
@@ -1960,6 +1967,7 @@ function dispatchAction<S, A>(
         update.next = pending.next;
         pending.next = update;
       }
+      // 将更新挂载到 queue, 形成一个环形链表结构
       queue.pending = update;
     }
 
@@ -2083,6 +2091,7 @@ if (enableCache) {
   (ContextOnlyDispatcher: Dispatcher).useCacheRefresh = throwInvalidHookError;
 }
 
+// 初始化 Hooks
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
@@ -2108,6 +2117,7 @@ if (enableCache) {
   (HooksDispatcherOnMount: Dispatcher).useCacheRefresh = mountRefresh;
 }
 
+// 更新 Hooks
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 

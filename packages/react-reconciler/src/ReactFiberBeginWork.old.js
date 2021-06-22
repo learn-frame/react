@@ -1446,6 +1446,7 @@ function mountIncompleteClassComponent(
   );
 }
 
+// 挂载未决定的组件(一般你可以理解为函数组件)
 function mountIndeterminateComponent(
   _current,
   workInProgress,

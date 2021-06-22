@@ -141,6 +141,7 @@ function createRootImpl(
   const rootContainerElement =
     container.nodeType === COMMENT_NODE ? container.parentNode : container;
   // 监听事件
+  // rootContainerElement 就是 div#root
   listenToAllSupportedEvents(rootContainerElement);
 
   if (mutableSources) {
